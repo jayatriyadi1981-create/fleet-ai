@@ -1,0 +1,686 @@
+/**
+ * Fleet Intelligence Smart AI - Mock GPS & Telematics Datasets
+ * PROMPT 10 - Enterprise GPS Tracker, SIM, Protocol & Firmware Mock Repository
+ */
+
+import {
+  GPSDeviceExtended,
+  SIMCard,
+  GPSProtocol,
+  FirmwarePackage,
+  DeviceDiagnosticResult,
+  DeviceEvent,
+  DeviceCommand,
+  NormalizedTelemetry,
+  AIDeviceIntelligence,
+  SIMAssignmentHistory,
+  DeviceAssignmentHistory
+} from '../types/gps';
+
+export const mockGpsProtocols: GPSProtocol[] = [
+  {
+    id: 'PROTO-ISTARTEK',
+    name: 'iStartek VT/PT Protocol ($$ Format)',
+    version: 'v3.8.2',
+    transport: 'TCP',
+    port: 5055,
+    encoding: 'Text',
+    parserAdapter: 'IStartekAdapter',
+    status: 'active',
+    authenticationMethod: 'IMEI_Handshake',
+    description: 'Protocol telematika iStartek ($$ format) untuk seri VT900, VT600, VT200, dan PT21 dengan fitur relay cut-off, fuel sensor RS232, dan BLE iBeacon.'
+  },
+  {
+    id: 'PROTO-GT06',
+    name: 'GT06 / Concox Protocol',
+    version: 'v3.2',
+    transport: 'TCP',
+    port: 5023,
+    encoding: 'Hex',
+    parserAdapter: 'GT06Adapter',
+    status: 'active',
+    authenticationMethod: 'IMEI_Handshake',
+    description: 'Standard GT06 protocol binary stream used by Concox, Meitrack, and Chinese trackers.'
+  },
+  {
+    id: 'PROTO-TELTONIKA',
+    name: 'Teltonika Codec 8 / 8 Extended',
+    version: 'v1.8',
+    transport: 'TCP',
+    port: 5027,
+    encoding: 'Binary',
+    parserAdapter: 'TeltonikaAdapter',
+    status: 'active',
+    authenticationMethod: 'IMEI_Handshake',
+    description: 'High-performance binary protocol with IO element support for FMB920 and FMC920.'
+  },
+  {
+    id: 'PROTO-QUECLINK',
+    name: 'Queclink ASCII Protocol',
+    version: 'v2.4',
+    transport: 'UDP',
+    port: 5004,
+    encoding: 'Text',
+    parserAdapter: 'QueclinkAdapter',
+    status: 'active',
+    authenticationMethod: 'IMEI_Handshake',
+    description: 'Text-based @ACK ASCII packet protocol for Queclink GV series.'
+  },
+  {
+    id: 'PROTO-JT808',
+    name: 'JT/T 808 National Standard',
+    version: 'v2019',
+    transport: 'TCP',
+    port: 8080,
+    encoding: 'Binary',
+    parserAdapter: 'JT808Adapter',
+    status: 'active',
+    authenticationMethod: 'Token',
+    description: 'Chinese GB/T 19056 & JT/T 808 heavy vehicle telemetry standard.'
+  },
+  {
+    id: 'PROTO-MQTT',
+    name: 'MQTT IoT Gateway Protocol',
+    version: 'v3.1.1',
+    transport: 'MQTT',
+    port: 8883,
+    encoding: 'JSON',
+    parserAdapter: 'MqttJsonAdapter',
+    status: 'active',
+    authenticationMethod: 'TLS_Client_Cert',
+    description: 'Secure TLS-encrypted JSON telemetry payload for modern IoT gateways.'
+  }
+];
+
+export const mockSimCards: SIMCard[] = [
+  {
+    id: 'SIM-001',
+    tenantId: 'TENANT-TLN-001',
+    phoneNumber: '+628129841001',
+    iccid: '8962011234567890123',
+    imsi: '510100123456789',
+    apn: 'm2m.telkomsel.id',
+    apnUsername: 'iot_tln',
+    apnPassword: '•••',
+    provider: 'Telkomsel',
+    network: '4G',
+    plan: 'Telkomsel IoT Corporate 2GB/Month',
+    status: 'active',
+    activationDate: '2024-01-15',
+    expiryDate: '2027-01-15',
+    currentDeviceId: 'GPS-001',
+    currentDeviceCode: 'GPS-000101',
+    monthlyDataLimitMb: 2048,
+    dataUsedMb: 612,
+    notes: 'Primary IoT SIM for Box Truck Jabodetabek'
+  },
+  {
+    id: 'SIM-002',
+    tenantId: 'TENANT-TLN-001',
+    phoneNumber: '+628129841002',
+    iccid: '8962011234567890124',
+    imsi: '510100123456790',
+    apn: 'm2m.telkomsel.id',
+    apnUsername: 'iot_tln',
+    apnPassword: '•••',
+    provider: 'Telkomsel',
+    network: '4G',
+    plan: 'Telkomsel IoT Corporate 2GB/Month',
+    status: 'active',
+    activationDate: '2024-01-15',
+    expiryDate: '2027-01-15',
+    currentDeviceId: 'GPS-002',
+    currentDeviceCode: 'GPS-000102',
+    monthlyDataLimitMb: 2048,
+    dataUsedMb: 489,
+    notes: 'Primary IoT SIM for Container Truck Trans-Jawa'
+  },
+  {
+    id: 'SIM-003',
+    tenantId: 'TENANT-TLN-001',
+    phoneNumber: '+628170091003',
+    iccid: '8962111234567890125',
+    imsi: '510110123456791',
+    apn: 'xl.m2m.co.id',
+    apnUsername: 'xl_iot',
+    apnPassword: '•••',
+    provider: 'XL',
+    network: '4G',
+    plan: 'XL Biz IoT Unlimited 1GB',
+    status: 'active',
+    activationDate: '2024-03-10',
+    expiryDate: '2026-03-10',
+    currentDeviceId: 'GPS-003',
+    currentDeviceCode: 'GPS-000103',
+    monthlyDataLimitMb: 1024,
+    dataUsedMb: 890,
+    notes: 'Secondary SIM XL for Surabaya branch'
+  },
+  {
+    id: 'SIM-004',
+    tenantId: 'TENANT-TLN-001',
+    phoneNumber: '+628560081004',
+    iccid: '8962151234567890126',
+    imsi: '510150123456792',
+    apn: 'indosat.m2m',
+    apnUsername: '',
+    apnPassword: '',
+    provider: 'Indosat',
+    network: '4G',
+    plan: 'Indosat Ooredoo M2M 500MB',
+    status: 'suspended',
+    activationDate: '2023-11-01',
+    expiryDate: '2025-11-01',
+    currentDeviceId: 'GPS-004',
+    currentDeviceCode: 'GPS-000104',
+    monthlyDataLimitMb: 500,
+    dataUsedMb: 498,
+    notes: 'Temporarily suspended due to high data usage anomaly'
+  },
+  {
+    id: 'SIM-005',
+    tenantId: 'TENANT-TLN-001',
+    phoneNumber: '+628129841005',
+    iccid: '8962011234567890127',
+    imsi: '510100123456793',
+    apn: 'm2m.telkomsel.id',
+    apnUsername: 'iot_tln',
+    apnPassword: '•••',
+    provider: 'Telkomsel',
+    network: '4G',
+    plan: 'Telkomsel IoT Corporate 2GB/Month',
+    status: 'active',
+    activationDate: '2024-05-20',
+    expiryDate: '2027-05-20',
+    currentDeviceId: 'GPS-005',
+    currentDeviceCode: 'GPS-000105',
+    monthlyDataLimitMb: 2048,
+    dataUsedMb: 120,
+    notes: 'Spare SIM in Depot Jakarta'
+  }
+];
+
+export const mockFirmwarePackages: FirmwarePackage[] = [
+  {
+    id: 'FW-TEL-FMB-001',
+    manufacturer: 'Teltonika',
+    model: 'FMB920',
+    version: 'v03.28.07.Rev.02',
+    releaseDate: '2026-05-12',
+    status: 'approved',
+    fileChecksum: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+    fileSizeMb: 4.8,
+    releaseNotes: 'Fixed BLE sensor disconnect bug, optimized battery sleep consumption, improved GPS cold start TTFF.',
+    compatibleModels: ['FMB920', 'FMC920']
+  },
+  {
+    id: 'FW-CON-AT4-001',
+    manufacturer: 'Concox',
+    model: 'AT4',
+    version: 'v4.1.2-build88',
+    releaseDate: '2026-03-20',
+    status: 'approved',
+    fileChecksum: 'f4c2c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852c912',
+    fileSizeMb: 2.1,
+    releaseNotes: 'Enhanced GT06 binary protocol handshake and tamper alarm threshold calibration.',
+    compatibleModels: ['AT4', 'GT06N']
+  },
+  {
+    id: 'FW-QUE-GV300-001',
+    manufacturer: 'Queclink',
+    model: 'GV300',
+    version: 'v2.09.01',
+    releaseDate: '2025-11-05',
+    status: 'approved',
+    fileChecksum: 'a1b2c34298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852d001',
+    fileSizeMb: 3.4,
+    releaseNotes: 'Added support for RS232 fuel sensor calibration curves and dual SIM failover.',
+    compatibleModels: ['GV300', 'GV300W']
+  }
+];
+
+export const mockGpsDevicesExtended: GPSDeviceExtended[] = [
+  {
+    id: 'GPS-001',
+    tenantId: 'TENANT-TLN-001',
+    deviceCode: 'GPS-000101',
+    imei: '860123456789012',
+    serialNumber: 'SN-TEL-8910231',
+    manufacturer: 'Teltonika',
+    model: 'FMB920',
+    protocolId: 'PROTO-TELTONIKA',
+    protocolName: 'Teltonika Codec 8',
+    firmwareVersion: 'v03.28.07.Rev.02',
+    latestAvailableFirmware: 'v03.28.07.Rev.02',
+    status: 'active',
+    connectionStatus: 'online',
+    healthStatus: 'healthy',
+    inventoryStatus: 'installed',
+    healthScore: 96,
+    simId: 'SIM-001',
+    simNumber: '+628129841001',
+    simProvider: 'Telkomsel',
+    vehicleId: 'V-001',
+    vehiclePlate: 'B 9821 UTX',
+    branchId: 'BR-001',
+    branchName: 'Cabang Utama Jakarta',
+    installationDate: '2024-01-20',
+    lastPingAt: new Date(Date.now() - 12 * 1000).toISOString(),
+    lastSuccessfulMessageAt: new Date(Date.now() - 12 * 1000).toISOString(),
+    messagesToday: 4120,
+    messagesFailed: 3,
+    externalVoltage: 13.8,
+    batteryVoltage: 4.1,
+    batteryPercent: 98,
+    satellitesCount: 14,
+    gpsAccuracyMeters: 2.4,
+    hdop: 0.8,
+    connectionLatencyMs: 45,
+    notes: 'Unit terpasang di bawah dashboard Isuzu Giga FVR.',
+    createdAt: '2024-01-18T10:00:00Z',
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'GPS-002',
+    tenantId: 'TENANT-TLN-001',
+    deviceCode: 'GPS-000102',
+    imei: '860123456789013',
+    serialNumber: 'SN-CON-9821034',
+    manufacturer: 'Concox',
+    model: 'AT4',
+    protocolId: 'PROTO-GT06',
+    protocolName: 'GT06 / Concox',
+    firmwareVersion: 'v4.1.2-build88',
+    latestAvailableFirmware: 'v4.1.2-build88',
+    status: 'active',
+    connectionStatus: 'online',
+    healthStatus: 'healthy',
+    inventoryStatus: 'installed',
+    healthScore: 92,
+    simId: 'SIM-002',
+    simNumber: '+628129841002',
+    simProvider: 'Telkomsel',
+    vehicleId: 'V-002',
+    vehiclePlate: 'B 9102 KXA',
+    branchId: 'BR-001',
+    branchName: 'Cabang Utama Jakarta',
+    installationDate: '2024-02-10',
+    lastPingAt: new Date(Date.now() - 25 * 1000).toISOString(),
+    lastSuccessfulMessageAt: new Date(Date.now() - 25 * 1000).toISOString(),
+    messagesToday: 3890,
+    messagesFailed: 12,
+    externalVoltage: 24.2,
+    batteryVoltage: 3.9,
+    batteryPercent: 90,
+    satellitesCount: 12,
+    gpsAccuracyMeters: 3.1,
+    hdop: 1.1,
+    connectionLatencyMs: 62,
+    notes: 'Terhubung ke kelistrikan 24V Hino Ranger 500.',
+    createdAt: '2024-02-08T11:20:00Z',
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'GPS-003',
+    tenantId: 'TENANT-TLN-001',
+    deviceCode: 'GPS-000103',
+    imei: '860123456789014',
+    serialNumber: 'SN-QUE-7712093',
+    manufacturer: 'Queclink',
+    model: 'GV300',
+    protocolId: 'PROTO-QUECLINK',
+    protocolName: 'Queclink ASCII',
+    firmwareVersion: 'v2.09.01',
+    latestAvailableFirmware: 'v2.09.01',
+    status: 'active',
+    connectionStatus: 'delayed',
+    healthStatus: 'warning',
+    inventoryStatus: 'installed',
+    healthScore: 68,
+    simId: 'SIM-003',
+    simNumber: '+628170091003',
+    simProvider: 'XL',
+    vehicleId: 'V-003',
+    vehiclePlate: 'B 9481 FTR',
+    branchId: 'BR-002',
+    branchName: 'Cabang Surabaya',
+    installationDate: '2024-03-15',
+    lastPingAt: new Date(Date.now() - 280 * 1000).toISOString(), // ~4.6 mins ago
+    lastSuccessfulMessageAt: new Date(Date.now() - 280 * 1000).toISOString(),
+    messagesToday: 2100,
+    messagesFailed: 145,
+    externalVoltage: 12.1,
+    batteryVoltage: 3.6,
+    batteryPercent: 62,
+    satellitesCount: 7,
+    gpsAccuracyMeters: 8.5,
+    hdop: 2.4,
+    connectionLatencyMs: 420,
+    notes: 'Peringatan signal lemah saat melintasi area pegunungan Trans-Jawa.',
+    createdAt: '2024-03-12T09:15:00Z',
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'GPS-004',
+    tenantId: 'TENANT-TLN-001',
+    deviceCode: 'GPS-000104',
+    imei: '860123456789015',
+    serialNumber: 'SN-TEL-9988123',
+    manufacturer: 'Teltonika',
+    model: 'FMB920',
+    protocolId: 'PROTO-TELTONIKA',
+    protocolName: 'Teltonika Codec 8',
+    firmwareVersion: 'v03.27.00.Rev.01',
+    latestAvailableFirmware: 'v03.28.07.Rev.02',
+    status: 'suspended',
+    connectionStatus: 'offline',
+    healthStatus: 'critical',
+    inventoryStatus: 'maintenance',
+    healthScore: 31,
+    simId: 'SIM-004',
+    simNumber: '+628560081004',
+    simProvider: 'Indosat',
+    vehicleId: 'V-004',
+    vehiclePlate: 'B 9733 TCU',
+    branchId: 'BR-001',
+    branchName: 'Cabang Utama Jakarta',
+    installationDate: '2023-11-10',
+    lastPingAt: new Date(Date.now() - 48 * 3600 * 1000).toISOString(), // 2 days ago
+    lastSuccessfulMessageAt: new Date(Date.now() - 48 * 3600 * 1000).toISOString(),
+    messagesToday: 0,
+    messagesFailed: 512,
+    externalVoltage: 0.0,
+    batteryVoltage: 3.1,
+    batteryPercent: 12,
+    satellitesCount: 0,
+    gpsAccuracyMeters: 99.0,
+    hdop: 9.9,
+    connectionLatencyMs: 0,
+    notes: 'Aki kendaraan terputus di bengkel perbaikan transmisi.',
+    createdAt: '2023-11-05T14:00:00Z',
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'GPS-005',
+    tenantId: 'TENANT-TLN-001',
+    deviceCode: 'GPS-000105',
+    imei: '860123456789016',
+    serialNumber: 'SN-TEL-1029384',
+    manufacturer: 'Teltonika',
+    model: 'FMC920',
+    protocolId: 'PROTO-TELTONIKA',
+    protocolName: 'Teltonika Codec 8',
+    firmwareVersion: 'v03.28.07.Rev.02',
+    latestAvailableFirmware: 'v03.28.07.Rev.02',
+    status: 'active',
+    connectionStatus: 'never_connected',
+    healthStatus: 'unknown',
+    inventoryStatus: 'in_stock',
+    healthScore: 100,
+    simId: 'SIM-005',
+    simNumber: '+628129841005',
+    simProvider: 'Telkomsel',
+    branchId: 'BR-001',
+    branchName: 'Cabang Utama Jakarta',
+    lastPingAt: '',
+    messagesToday: 0,
+    messagesFailed: 0,
+    notes: 'Perangkat cadangan baru di gudang logistik Jakarta.',
+    createdAt: '2026-06-01T08:00:00Z',
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'GPS-006',
+    tenantId: 'TENANT-TLN-001',
+    deviceCode: 'GPS-000106',
+    imei: '860123456789020',
+    serialNumber: 'SN-IST-9901234',
+    manufacturer: 'iStartek',
+    model: 'VT900-4G Full Telematics',
+    protocolId: 'PROTO-ISTARTEK',
+    protocolName: 'iStartek VT/PT Protocol',
+    firmwareVersion: 'VT900_V3.8.2_4G',
+    latestAvailableFirmware: 'VT900_V3.8.2_4G',
+    status: 'active',
+    connectionStatus: 'online',
+    healthStatus: 'healthy',
+    inventoryStatus: 'installed',
+    healthScore: 98,
+    simId: 'SIM-001',
+    simNumber: '+628129841001',
+    simProvider: 'Telkomsel',
+    vehicleId: 'V-005',
+    vehiclePlate: 'B 9234 KMN',
+    branchId: 'BR-001',
+    branchName: 'Cabang Utama Jakarta',
+    installationDate: '2026-07-10',
+    lastPingAt: new Date(Date.now() - 5 * 1000).toISOString(),
+    lastSuccessfulMessageAt: new Date(Date.now() - 5 * 1000).toISOString(),
+    messagesToday: 5120,
+    messagesFailed: 1,
+    externalVoltage: 24.4,
+    batteryVoltage: 4.2,
+    batteryPercent: 95,
+    satellitesCount: 16,
+    gpsAccuracyMeters: 1.8,
+    hdop: 0.7,
+    connectionLatencyMs: 38,
+    notes: 'Terhubung dengan Fuel Sensor Ultrasonik RS232 dan Engine Cut-Off Relay.',
+    createdAt: '2026-07-01T09:00:00Z',
+    updatedAt: new Date().toISOString()
+  }
+];
+
+export const mockSIMAssignmentHistory: SIMAssignmentHistory[] = [
+  {
+    id: 'SIM-HIST-001',
+    simId: 'SIM-001',
+    deviceId: 'GPS-001',
+    deviceCode: 'GPS-000101',
+    assignedAt: '2024-01-20T10:00:00Z',
+    assignedBy: 'Ahmad Fauzi (Fleet Admin)',
+    reason: 'Inisialisasi perangkat baru pada Isuzu Giga B 9821 UTX'
+  },
+  {
+    id: 'SIM-HIST-002',
+    simId: 'SIM-004',
+    deviceId: 'GPS-004',
+    deviceCode: 'GPS-000104',
+    assignedAt: '2023-11-10T14:00:00Z',
+    assignedBy: 'Budi Santoso (Logistics Manager)',
+    reason: 'Pemasangan awal Mitsubishi Fuso B 9733 TCU'
+  }
+];
+
+export const mockDeviceAssignmentHistory: DeviceAssignmentHistory[] = [
+  {
+    id: 'DEV-HIST-001',
+    deviceId: 'GPS-001',
+    vehicleId: 'V-001',
+    vehiclePlate: 'B 9821 UTX',
+    assignedAt: '2024-01-20T10:00:00Z',
+    assignedBy: 'Ahmad Fauzi',
+    reason: 'Penugasan awal kendaraan armada box Jabodetabek'
+  },
+  {
+    id: 'DEV-HIST-002',
+    deviceId: 'GPS-002',
+    vehicleId: 'V-002',
+    vehiclePlate: 'B 9102 KXA',
+    assignedAt: '2024-02-10T11:20:00Z',
+    assignedBy: 'Siti Aminah',
+    reason: 'Pemasangan GPS pada truk kontainer Hino'
+  }
+];
+
+export const mockDeviceEvents: DeviceEvent[] = [
+  {
+    id: 'DEV-EVT-001',
+    deviceId: 'GPS-001',
+    timestamp: new Date(Date.now() - 12 * 1000).toISOString(),
+    type: 'connection',
+    title: 'Koneksi Gateway Heartbeat OK',
+    description: 'Perangkat mengirim paket TCP pingsat 12 detik lalu dengan latency 45ms.',
+    severity: 'info'
+  },
+  {
+    id: 'DEV-EVT-002',
+    deviceId: 'GPS-003',
+    timestamp: new Date(Date.now() - 280 * 1000).toISOString(),
+    type: 'signal',
+    title: 'Sinyal GPS Melemah (HDOP > 2.0)',
+    description: 'Satelit terdeteksi turun ke 7 unit. Akurasi posisi turun ke 8.5m.',
+    severity: 'warning'
+  },
+  {
+    id: 'DEV-EVT-003',
+    deviceId: 'GPS-004',
+    timestamp: new Date(Date.now() - 48 * 3600 * 1000).toISOString(),
+    type: 'power',
+    title: 'Sumber Daya Utama Terputus (Power Cut Alert)',
+    description: 'Tegangan aki eksternal turun dari 24.1V ke 0.0V. Baterai cadangan aktif.',
+    severity: 'critical'
+  }
+];
+
+export const mockDeviceCommands: DeviceCommand[] = [
+  {
+    id: 'CMD-001',
+    deviceId: 'GPS-001',
+    deviceCode: 'GPS-000101',
+    vehiclePlate: 'B 9821 UTX',
+    commandType: 'REQUEST_POSITION',
+    parameters: { mode: 'instant' },
+    status: 'acknowledged',
+    sentBy: 'Ahmad Fauzi (Fleet Admin)',
+    createdAt: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
+    acknowledgedAt: new Date(Date.now() - 2 * 3600 * 1000 + 1200).toISOString(),
+    auditReference: 'AUD-CMD-98102',
+    responsePayload: '+RESP:POS,LAT=-6.2088,LNG=106.8456,SPD=45,SAT=14'
+  },
+  {
+    id: 'CMD-002',
+    deviceId: 'GPS-002',
+    deviceCode: 'GPS-000102',
+    vehiclePlate: 'B 9102 KXA',
+    commandType: 'SET_INTERVAL',
+    parameters: { intervalSeconds: 10 },
+    status: 'acknowledged',
+    sentBy: 'Siti Aminah (Dispatch)',
+    createdAt: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
+    acknowledgedAt: new Date(Date.now() - 24 * 3600 * 1000 + 2100).toISOString(),
+    auditReference: 'AUD-CMD-98001',
+    responsePayload: 'OK:INTERVAL=10S'
+  }
+];
+
+export const mockDeviceDiagnostics: DeviceDiagnosticResult = {
+  id: 'DIAG-20260815-001',
+  deviceId: 'GPS-001',
+  deviceCode: 'GPS-000101',
+  timestamp: new Date().toISOString(),
+  performedBy: 'Ahmad Fauzi (Fleet Manager)',
+  overallStatus: 'pass',
+  checks: [
+    {
+      id: 'chk-1',
+      name: 'Pemeriksaan Format IMEI',
+      category: 'IMEI',
+      status: 'pass',
+      message: 'IMEI 860123456789012 valid (Format 15-digit Luhn Check OK)'
+    },
+    {
+      id: 'chk-2',
+      name: 'Status Registrasi Kartu SIM',
+      category: 'SIM',
+      status: 'pass',
+      message: 'Kartu SIM Telkomsel IoT (+628129841001) terdaftar aktif'
+    },
+    {
+      id: 'chk-3',
+      name: 'Konektivitas Jaringan Seluler',
+      category: 'Network',
+      status: 'pass',
+      message: 'Modem 4G LTE terhubung ke BTS Telkomsel (RSSI -72 dBm)'
+    },
+    {
+      id: 'chk-4',
+      name: 'Gateway Handshake TCP',
+      category: 'Connection',
+      status: 'pass',
+      message: 'Sesi Teltonika Codec 8 aktif di Port 5027 (Latency 45ms)'
+    },
+    {
+      id: 'chk-5',
+      name: 'Sinyal & Kunci Satelit GPS',
+      category: 'GPS',
+      status: 'pass',
+      message: 'Locked 14 Satellites (3D Fix, HDOP 0.8, Presisi 2.4 meter)'
+    },
+    {
+      id: 'chk-6',
+      name: 'Stabilitas Tegangan Aki & Baterai',
+      category: 'Power',
+      status: 'pass',
+      message: 'Tegangan aki eksternal 13.8V, Baterai internal 4.1V (98%)'
+    },
+    {
+      id: 'chk-7',
+      name: 'Versi Firmware & Patch',
+      category: 'Firmware',
+      status: 'pass',
+      message: 'Firmware v03.28.07.Rev.02 adalah versi stabil terbaru'
+    }
+  ],
+  findings: [
+    'Perangkat GPS dalam kondisi optimal tanpa adanya potensi gangguan jaringan.',
+    'Akurasi pingsat dan transmisi data telemetri memenuhi standar SLA enterprise 99.9%.'
+  ]
+};
+
+export const mockNormalizedTelemetry: NormalizedTelemetry = {
+  id: 'TEL-SNAP-001',
+  tenantId: 'TENANT-TLN-001',
+  deviceId: 'GPS-001',
+  vehicleId: 'V-001',
+  timestamp: new Date().toISOString(),
+  latitude: -6.2088,
+  longitude: 106.8456,
+  speed: 48,
+  heading: 120,
+  altitude: 18,
+  ignition: true,
+  satellites: 14,
+  accuracy: 2.4,
+  batteryVoltage: 4.1,
+  externalVoltage: 13.8,
+  odometerKm: 142890,
+  fuelLevelPercent: 78,
+  rawDataReference: 'RAW-HEX-00129841'
+};
+
+export const mockAIDeviceIntelligence: AIDeviceIntelligence = {
+  deviceId: 'GPS-001',
+  healthForecast7Days: 'Low Risk',
+  confidenceScore: 94,
+  connectionStabilityIndex: 98,
+  findings: [
+    {
+      category: 'Konektivitas',
+      title: 'Koneksi Gateway Sangat Stabil',
+      explanation: 'Tingkat keberhasilan ping mencapai 99.9% dalam 30 hari terakhir tanpa ada pemutusan tak terduga.',
+      recommendedAction: 'Pertahankan periode update pingsat 10 detik.',
+      severity: 'info'
+    },
+    {
+      category: 'Baterai & Daya',
+      title: 'Pengisian Aki Otomatis Optimal',
+      explanation: 'Tegangan aki kendaraan Isuzu Giga terdeteksi stabil pada 13.8V saat mesin menyala.',
+      recommendedAction: 'Tidak diperlukan tindakan pemeliharaan.',
+      severity: 'info'
+    }
+  ],
+  powerTrend: 'stable',
+  signalQualityScore: 96,
+  dataQualityScore: 99
+};

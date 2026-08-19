@@ -1,0 +1,8 @@
+{
+  "name": "Fleet Intelligence Smart AI",
+  "description": "Platform AI Telematika & GPS Fleet Management Enterprise untuk Pengelolaan Armada, Driver, Safety, BBM, dan Pemeliharaan",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
