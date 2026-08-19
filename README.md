@@ -1,11 +1,36 @@
-<div align="center">
+# Fleet Intelligence Smart AI
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+**Fleet Intelligence Smart AI** adalah platform Fleet Management & Telematics cerdas berbasis React + TypeScript + Express yang dirancang untuk industri logistik dan transportasi Indonesia.
 
-  <h1>Built with AI Studio</h2>
+## Key Features
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+- **Executive Operations Control Dashboard**: Real-time KPI monitoring, active alerts, fuel stats, driver safety scores, and predictive maintenance.
+- **Interactive Telematics Map**: Real-time vehicle location tracking, geofence zones, velocity indicators, and telemetry overlays.
+- **AI Telematics Decision Support**: Powered by Gemini AI via Express server backend to provide instant route optimization, fuel anomaly detection, and maintenance scheduling.
+- **Driver Behavior Scorecard**: Speeding incidents, harsh braking, SIM expiration reminders, and safety rankings.
+- **Fuel Telemetry & Anomaly Detection**: Biosolar B35 consumption tracking and theft/spill alerts.
+- **Predictive Maintenance & Work Orders**: Automated servicing schedules, workshop tracking, and KIR Dishub inspection expiry logs.
+- **Multi-Tenant SaaS & RBAC Architecture**: Branch management, role permissions, and tenant isolation.
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+## Technical Architecture
 
-</div>
+- **Frontend**: React 19, TypeScript, Tailwind CSS, Lucide Icons, Motion.
+- **Backend API**: Express Server with bundled esbuild compilation.
+- **State Management**: React Context (`FleetContext`), type-safe hooks.
+- **Services**: Abstracted API Client, Mock GPS Simulator, AI Decision Support service.
+
+## Getting Started
+
+```bash
+# Install dependencies
+npm install
+
+# Run development server
+npm run dev
+
+# Build production bundle
+npm run build
+
+# Start production server
+npm run start
+```
