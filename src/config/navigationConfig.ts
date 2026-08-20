@@ -25,6 +25,7 @@ import {
   FolderCheck,
   UserCheck,
   Radio,
+  Server,
   ShieldCheck,
   Cpu,
   Activity,
@@ -49,7 +50,13 @@ import {
   Smartphone,
   Radar,
   Shield,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Lock,
+  Car,
+  KeyRound,
+  Calendar,
+  Receipt,
+  TrendingUp
 } from 'lucide-react';
 
 export interface NavItemConfig {
@@ -70,6 +77,7 @@ export const NAVIGATION_CONFIG: NavGroupConfig[] = [
     items: [
       { id: 'dashboard', label: 'Dashboard Utama', icon: LayoutDashboard, permission: 'dashboard.view' },
       { id: 'executive_dashboard', label: 'Executive Dashboard (Direksi)', icon: Crown, permission: 'executive.dashboard.view' },
+      { id: 'executive_report', label: 'Laporan Eksekutif C-Level (AI)', icon: FileSpreadsheet, permission: 'executive.dashboard.view' },
     ],
   },
   {
@@ -84,6 +92,23 @@ export const NAVIGATION_CONFIG: NavGroupConfig[] = [
       { id: 'routes', label: 'Route Management', icon: Waypoints, permission: 'route.view' },
       { id: 'geofence', label: 'Geofencing', icon: Map, permission: 'geofence.view' },
       { id: 'trips', label: 'Trip History', icon: Route, permission: 'trip.view' },
+    ],
+  },
+  {
+    title: 'RENT CAR MANAGEMENT',
+    items: [
+      { id: 'rent_car', label: 'Armada & GPS Live', icon: Car, permission: 'vehicle.view' },
+      { id: 'rent_car_bookings', label: 'Reservasi & Sewa', icon: KeyRound, permission: 'vehicle.view' },
+      { id: 'rent_car_contracts', label: 'Kontrak Digital', icon: FileText, permission: 'vehicle.view' },
+      { id: 'rent_car_calendar', label: 'Kalender Sewa', icon: Calendar, permission: 'vehicle.view' },
+      { id: 'rent_car_customers', label: 'Pelanggan & AI KYC', icon: ShieldCheck, permission: 'vehicle.view' },
+      { id: 'rent_car_damages', label: 'Klaim & Kerusakan', icon: Wrench, permission: 'vehicle.view' },
+      { id: 'rent_car_invoices', label: 'Faktur & Piutang', icon: Receipt, permission: 'vehicle.view' },
+      { id: 'rent_car_security', label: 'Anti-Theft & Geofence', icon: ShieldAlert, permission: 'vehicle.view' },
+      { id: 'rent_car_tariffs', label: 'Tarif & Deposit', icon: DollarSign, permission: 'vehicle.view' },
+      { id: 'rent_car_analytics', label: 'Analitik Laba Rugi', icon: TrendingUp, permission: 'vehicle.view' },
+      { id: 'rent_car_ai', label: 'AI Copilot & Radar', icon: Brain, permission: 'vehicle.view' },
+      { id: 'rent_car_reports', label: 'Pusat Laporan Rental', icon: FileSpreadsheet, permission: 'vehicle.view' },
     ],
   },
   {
@@ -130,6 +155,7 @@ export const NAVIGATION_CONFIG: NavGroupConfig[] = [
   {
     title: 'INTELLIGENCE & LAPORAN',
     items: [
+      { id: 'daily_briefing', label: 'AI Fleet Daily Briefing', icon: Sparkles, permission: 'ai.view' },
       { id: 'fleet_assistant', label: 'AI Fleet Assistant', icon: Sparkles, permission: 'ai.view' },
       { id: 'route_intelligence', label: 'AI Route & ETA Intelligence', icon: Navigation, permission: 'ai.view' },
       { id: 'fleet_intelligence', label: 'AI Fleet Intelligence', icon: Brain, permission: 'ai.view' },
@@ -163,6 +189,7 @@ export const NAVIGATION_CONFIG: NavGroupConfig[] = [
       { id: 'audit', label: 'Audit Trail & Activity Log', icon: Shield, permission: 'audit.view' },
       { id: 'subscription', label: 'Langganan & Billing', icon: CreditCard, permission: 'billing.view' },
       { id: 'developer_portal', label: 'Developer API & Webhooks', icon: Code2, permission: 'settings.view' },
+      { id: 'gps_server', label: 'GPS Server & Supabase', icon: Server, permission: 'integration.view' },
       { id: 'integrations', label: 'Gateway GPS IoT', icon: Radio, permission: 'integration.view' },
       { id: 'settings', label: 'Pengaturan Tenant', icon: Settings, permission: 'settings.view' },
     ],

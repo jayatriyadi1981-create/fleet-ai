@@ -30,11 +30,19 @@ export const MobileNav: React.FC = () => {
 
   const { can, userRole, scope } = useAuthorization();
 
-  const primaryItems = [
+  interface PrimaryNavItem {
+    id: ActiveView;
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+    permission: string;
+    badge?: number;
+  }
+
+  const primaryItems: PrimaryNavItem[] = [
     { id: 'dashboard' as ActiveView, label: 'Home', icon: LayoutDashboard, permission: 'dashboard.view' },
-    { id: 'live_tracking' as ActiveView, label: 'Peta', icon: MapPin, permission: 'tracking.view' },
     { id: 'vehicles' as ActiveView, label: 'Fleet', icon: Truck, permission: 'vehicle.view' },
-    { id: 'alerts' as ActiveView, label: 'Alerts', icon: Bell, badge: unreadAlertsCount, permission: 'alert.view' },
+    { id: 'live_tracking' as ActiveView, label: 'Map', icon: MapPin, permission: 'tracking.view' },
+    { id: 'fleet_assistant' as ActiveView, label: 'AI', icon: Sparkles, permission: 'ai.view' },
   ].filter((i) => can(i.permission));
 
   const handleSelect = (id: ActiveView) => {
@@ -44,23 +52,30 @@ export const MobileNav: React.FC = () => {
 
   return (
     <>
-      {/* Mobile Bottom Navigation Bar */}
-      <nav aria-label="Navigasi Mobile Utama" className="fixed bottom-0 left-0 right-0 z-40 flex h-16 w-full items-center justify-around border-t border-slate-800 bg-slate-950/95 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur-lg md:hidden">
+      {/* Mobile Bottom Navigation Bar (Max 5 items: Home, Fleet, Map, AI, More) */}
+      <nav
+        role="navigation"
+        aria-label="Navigasi Mobile Utama"
+        className="fixed bottom-0 left-0 right-0 z-40 flex h-16 w-full items-center justify-around border-t border-slate-800 bg-slate-950/95 px-1.5 pb-[max(env(safe-area-inset-bottom),0.35rem)] backdrop-blur-lg md:hidden shadow-2xl"
+      >
         {primaryItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeView === item.id;
           return (
             <button
               key={item.id}
+              type="button"
               onClick={() => handleSelect(item.id)}
-              className={`relative flex min-h-[44px] min-w-[44px] flex-col items-center justify-center gap-1 py-1 px-2 rounded-xl text-[10px] font-semibold transition-all ${
+              aria-label={`Buka halaman ${item.label}`}
+              aria-current={isActive ? 'page' : undefined}
+              className={`relative flex min-h-[44px] min-w-[44px] flex-1 flex-col items-center justify-center gap-0.5 py-1 px-1 rounded-xl text-[10px] font-semibold transition-all ${
                 isActive
-                  ? 'text-cyan-400 font-bold bg-cyan-500/10 border border-cyan-500/20'
+                  ? 'text-cyan-300 font-bold bg-cyan-500/10 border border-cyan-500/30 shadow-sm shadow-cyan-950/40'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <Icon className="h-5 w-5" />
-              <span>{item.label}</span>
+              <Icon className={`h-5 w-5 ${isActive && item.id === 'fleet_assistant' ? 'text-cyan-300 animate-pulse' : ''}`} />
+              <span className="truncate">{item.label}</span>
               {item.badge !== undefined && item.badge > 0 && (
                 <span className="absolute top-1 right-2 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white shadow-sm">
                   {item.badge > 9 ? '9+' : item.badge}
@@ -72,15 +87,21 @@ export const MobileNav: React.FC = () => {
 
         {/* More Menu Drawer Toggle */}
         <button
+          type="button"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className={`flex min-h-[44px] min-w-[44px] flex-col items-center justify-center gap-1 py-1 px-2 rounded-xl text-[10px] font-semibold transition-all ${
+          aria-label="Buka Menu Navigasi Lengkap"
+          aria-expanded={isMobileMenuOpen}
+          className={`relative flex min-h-[44px] min-w-[44px] flex-1 flex-col items-center justify-center gap-0.5 py-1 px-1 rounded-xl text-[10px] font-semibold transition-all ${
             isMobileMenuOpen
-              ? 'text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 font-bold'
+              ? 'text-cyan-300 bg-cyan-500/10 border border-cyan-500/30 font-bold shadow-sm'
               : 'text-slate-400 hover:text-slate-200'
           }`}
         >
           <Menu className="h-5 w-5" />
           <span>More</span>
+          {unreadAlertsCount > 0 && (
+            <span className="absolute top-1 right-2 flex h-2 w-2 rounded-full bg-rose-500 ring-2 ring-slate-950 animate-pulse" />
+          )}
         </button>
       </nav>
 

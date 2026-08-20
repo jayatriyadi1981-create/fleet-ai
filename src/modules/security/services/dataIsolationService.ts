@@ -47,7 +47,7 @@ export class DataIsolationService {
         actor: {
           actorId: 'usr_sec_check',
           actorType: 'USER',
-          actorRole: userRole,
+          actorEmail: `${userRole.toLowerCase()}@system.sec`,
           tenantId: userTenantId,
         },
         description: `CROSS-TENANT VIOLATION DETECTED: User in tenant [${userTenantId}] attempted [${targetAction}] on [${targetModule}] in foreign tenant [${targetTenantId}]`,
@@ -75,8 +75,9 @@ export class DataIsolationService {
       role: userRole as any,
       tenantId: userTenantId,
       branchId: userBranchId,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      phone: '+628123456789',
+      department: 'Operations',
+      permissions: [],
     };
 
     const hasRbacPermission = authorizationService.can(mockUser, targetModule, targetAction);

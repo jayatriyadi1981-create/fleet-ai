@@ -11,10 +11,12 @@ export * from './superAdmin';
 export * from './vehicle';
 export * from './gps';
 export * from './driver';
+export * from './dailyBriefing';
+export * from '../modules/rent-car/types';
 
 export type VehicleStatus = 'moving' | 'idle' | 'parking' | 'offline' | 'emergency' | 'maintenance' | 'under_maintenance' | 'archived';
 
-export type VehicleType = 'truck_box' | 'truck_container' | 'truck_dump' | 'van' | 'bus' | 'pickup' | 'car' | 'heavy_equipment';
+export type VehicleType = 'truck_box' | 'truck_container' | 'truck_dump' | 'truck_tanker' | 'van' | 'bus' | 'pickup' | 'car' | 'heavy_equipment';
 
 export type FuelType = 'diesel' | 'biodiesel_b35' | 'pertalite' | 'pertamax' | 'electric';
 
@@ -76,6 +78,7 @@ export interface Vehicle {
   fuelType: FuelType;
   fuelCapacityLiters: number;
   status: VehicleStatus;
+  speed?: number;
   currentDriverId?: string;
   gpsDeviceId: string;
   odometerKm: number;
@@ -317,3 +320,7 @@ export interface UserProfile {
   department: string;
   permissions: string[];
 }
+
+export type { RecommendationPriority } from './executiveReport';
+export * from './executiveReport';
+

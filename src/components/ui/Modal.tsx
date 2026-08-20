@@ -43,8 +43,17 @@ export const Modal: React.FC<ModalProps> = ({
     full: 'max-w-6xl w-full',
   };
 
+  const titleId = `modal-title-${Math.random().toString(36).substring(2, 9)}`;
+  const descId = `modal-desc-${Math.random().toString(36).substring(2, 9)}`;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={title ? titleId : undefined}
+      aria-describedby={description ? descId : undefined}
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200"
+    >
       <div
         className="fixed inset-0"
         onClick={() => closeOnBackdrop && onClose()}
@@ -52,18 +61,19 @@ export const Modal: React.FC<ModalProps> = ({
       />
 
       <div
-        className={`relative z-10 w-full rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl shadow-slate-950/80 overflow-hidden flex flex-col max-h-[90vh] ${sizeStyles[size]}`}
+        className={`relative z-10 w-full rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl shadow-slate-950/90 overflow-hidden flex flex-col max-h-[92vh] sm:max-h-[90vh] ${sizeStyles[size]}`}
       >
         {/* Header */}
         {(title || description) && (
-          <div className="flex items-start justify-between border-b border-slate-800 px-6 py-4">
+          <div className="flex items-start justify-between border-b border-slate-800 px-5 sm:px-6 py-4">
             <div>
-              {title && <h3 className="text-base font-bold text-white">{title}</h3>}
-              {description && <p className="text-xs text-slate-400 mt-0.5">{description}</p>}
+              {title && <h3 id={titleId} className="text-base font-bold text-white tracking-tight">{title}</h3>}
+              {description && <p id={descId} className="text-xs text-slate-400 mt-0.5 leading-relaxed">{description}</p>}
             </div>
             <button
               onClick={onClose}
-              className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
+              aria-label="Tutup modal"
+              className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white transition-colors focus:ring-2 focus:ring-cyan-500 focus:outline-none"
             >
               <X className="h-4 w-4" />
             </button>
@@ -71,10 +81,10 @@ export const Modal: React.FC<ModalProps> = ({
         )}
 
         {/* Content Body */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">{children}</div>
+        <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">{children}</div>
 
         {/* Footer */}
-        {footer && <div className="border-t border-slate-800 bg-slate-950/60 px-6 py-4 flex items-center justify-end gap-3">{footer}</div>}
+        {footer && <div className="border-t border-slate-800 bg-slate-950/70 px-5 sm:px-6 py-3.5 sm:py-4 flex flex-wrap items-center justify-end gap-2.5 sm:gap-3">{footer}</div>}
       </div>
     </div>
   );

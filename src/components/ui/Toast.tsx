@@ -67,8 +67,12 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       value={{ showToast, addToast, showSuccess, showError, showWarning, showInfo, showAi, removeToast }}
     >
       {children}
-      {/* Toast Floating Container */}
-      <div className="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0">
+      {/* Toast Floating Container - elevated above mobile bottom navigation */}
+      <div
+        role="region"
+        aria-label="Notifikasi sistem"
+        className="fixed bottom-20 sm:bottom-6 right-3 sm:right-6 z-50 flex flex-col gap-2.5 max-w-sm w-[calc(100%-1.5rem)] sm:w-full pointer-events-none"
+      >
         {toasts.map((toast) => (
           <ToastItem key={toast.id} toast={toast} onClose={() => removeToast(toast.id)} />
         ))}
@@ -104,14 +108,20 @@ const ToastItem: React.FC<{ toast: ToastMessage; onClose: () => void }> = ({ toa
 
   return (
     <div
+      role="status"
+      aria-live="polite"
       className={`pointer-events-auto flex items-start gap-3 rounded-2xl border p-4 shadow-2xl backdrop-blur-md animate-in slide-in-from-right duration-200 ${borders[toast.type]}`}
     >
       {icons[toast.type]}
       <div className="flex-1 space-y-0.5">
-        <h4 className="text-xs font-bold text-white">{toast.title}</h4>
+        <h4 className="text-xs font-bold text-white tracking-tight">{toast.title}</h4>
         {toast.description && <p className="text-[11px] text-slate-300 leading-snug">{toast.description}</p>}
       </div>
-      <button onClick={onClose} className="text-slate-400 hover:text-white p-1">
+      <button
+        onClick={onClose}
+        aria-label="Tutup notifikasi"
+        className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800/60 transition-colors"
+      >
         <X className="h-3.5 w-3.5" />
       </button>
     </div>

@@ -35,6 +35,8 @@ interface AuthContextType {
   error: string | null;
 
   login: (credentials: LoginCredentials) => Promise<boolean>;
+  loginWithSSO: (provider: 'google' | 'microsoft') => Promise<boolean>;
+  loginWithOTP: (email: string, otpCode: string) => Promise<boolean>;
   register: (data: RegisterData) => Promise<{ message: string; requiresEmailVerification: boolean }>;
   logout: () => Promise<void>;
   forgotPassword: (data: ForgotPasswordData) => Promise<{ message: string }>;
@@ -48,6 +50,7 @@ interface AuthContextType {
   changePassword: (currentPass: string, newPass: string) => Promise<void>;
   revokeSession: (sessionId: string) => Promise<void>;
   logoutAllSessions: () => Promise<void>;
+  forceLogoutUser: (userId: string) => Promise<void>;
   updateOrganization: (data: OrganizationSetupData) => Promise<void>;
   refreshSessionsAndAuditLogs: () => Promise<void>;
   clearError: () => void;
@@ -125,6 +128,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return true;
     } catch (err: any) {
       setError(err.message || 'Email atau password tidak valid.');
+      setStatus('unauthenticated');
+      throw err;
+    }
+  };
+
+  const loginWithSSO = async (provider: 'google' | 'microsoft'): Promise<boolean> => {
+    setError(null);
+    setStatus('loading');
+    try {
+      const res = await authService.loginWithSSO(provider);
+      setUser(res.user);
+      setTenant(res.tenant);
+      setSession(res.session);
+      setMfaRequired(false);
+      setMfaPendingToken(null);
+      setStatus('authenticated');
+      refreshSessionsAndAuditLogs();
+      return true;
+    } catch (err: any) {
+      setError(err.message || 'Gagal login SSO.');
+      setStatus('unauthenticated');
+      throw err;
+    }
+  };
+
+  const loginWithOTP = async (email: string, otpCode: string): Promise<boolean> => {
+    setError(null);
+    setStatus('loading');
+    try {
+      const res = await authService.loginWithOTP(email, otpCode);
+      setUser(res.user);
+      setTenant(res.tenant);
+      setSession(res.session);
+      setMfaRequired(false);
+      setMfaPendingToken(null);
+      setStatus('authenticated');
+      refreshSessionsAndAuditLogs();
+      return true;
+    } catch (err: any) {
+      setError(err.message || 'Kode OTP tidak valid.');
       setStatus('unauthenticated');
       throw err;
     }
@@ -270,6 +313,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const forceLogoutUser = async (userId: string) => {
+    try {
+      await authService.forceLogoutUser(userId);
+      refreshSessionsAndAuditLogs();
+    } catch (err: any) {
+      setError(err.message || 'Gagal memaksa logout pengguna.');
+      throw err;
+    }
+  };
+
   const updateOrganization = async (data: OrganizationSetupData) => {
     try {
       const updatedTenant = await authService.updateOrganization(data);
@@ -313,6 +366,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         error,
 
         login,
+        loginWithSSO,
+        loginWithOTP,
         register,
         logout,
         forgotPassword,
@@ -326,6 +381,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         changePassword,
         revokeSession,
         logoutAllSessions,
+        forceLogoutUser,
         updateOrganization,
         refreshSessionsAndAuditLogs,
         clearError,

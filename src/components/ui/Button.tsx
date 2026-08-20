@@ -1,5 +1,5 @@
 import React from 'react';
-import { Loader2, Sparkles } from 'lucide-react';
+import { Loader2, Sparkles, Check } from 'lucide-react';
 
 export type ButtonVariant =
   | 'primary'
@@ -17,6 +17,9 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   variant?: ButtonVariant;
   size?: ButtonSize;
   isLoading?: boolean;
+  isSuccess?: boolean;
+  successText?: string;
+  loadingText?: string;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   fullWidth?: boolean;
@@ -29,27 +32,31 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       variant = 'primary',
       size = 'md',
       isLoading = false,
+      isSuccess = false,
+      successText = 'Tersimpan ✓',
+      loadingText,
       disabled,
       leftIcon,
       rightIcon,
       fullWidth = false,
       className = '',
       type = 'button',
+      'aria-label': ariaLabel,
       ...props
     },
     ref
   ) => {
     // Base styles
     const baseStyles =
-      'inline-flex items-center justify-center font-semibold transition-all duration-150 ease-in-out select-none focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-950 disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98]';
+      'inline-flex items-center justify-center font-semibold transition-all duration-150 ease-in-out select-none focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-950 disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98] cursor-pointer';
 
     // Size variants
     const sizeStyles: Record<ButtonSize, string> = {
-      xs: 'px-2.5 py-1 text-[11px] rounded-md gap-1.5',
-      sm: 'px-3 py-1.5 text-xs rounded-lg gap-1.5',
-      md: 'px-4 py-2 text-xs rounded-xl gap-2',
-      lg: 'px-5 py-2.5 text-sm rounded-xl gap-2.5',
-      xl: 'px-6 py-3.5 text-base rounded-2xl gap-3',
+      xs: 'min-h-[30px] px-2.5 py-1 text-[11px] rounded-md gap-1.5',
+      sm: 'min-h-[36px] px-3.5 py-1.5 text-xs rounded-lg gap-1.5',
+      md: 'min-h-[42px] px-4 py-2 text-xs rounded-xl gap-2',
+      lg: 'min-h-[46px] px-5 py-2.5 text-sm rounded-xl gap-2.5',
+      xl: 'min-h-[52px] px-6 py-3.5 text-base rounded-2xl gap-3',
     };
 
     // Variant styles
@@ -79,11 +86,23 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         type={type}
         disabled={disabled || isLoading}
-        className={`${baseStyles} ${sizeStyles[size]} ${variantStyles[variant]} ${widthStyle} ${className}`}
+        aria-busy={isLoading}
+        aria-label={ariaLabel || (typeof children === 'string' ? children : undefined)}
+        className={`${baseStyles} ${sizeStyles[size]} ${
+          isSuccess ? 'bg-emerald-600 text-white border border-emerald-400' : variantStyles[variant]
+        } ${widthStyle} ${className}`}
         {...props}
       >
         {isLoading ? (
-          <Loader2 className="h-4 w-4 animate-spin text-current" />
+          <span className="flex items-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin text-current" />
+            <span>{loadingText || 'Memuat...'}</span>
+          </span>
+        ) : isSuccess ? (
+          <span className="flex items-center gap-1.5 text-emerald-100 font-bold">
+            <Check className="h-4 w-4 text-white" />
+            <span>{successText}</span>
+          </span>
         ) : (
           <>
             {variant === 'ai' && !leftIcon && <Sparkles className="h-3.5 w-3.5 text-cyan-200" />}
@@ -98,3 +117,4 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 );
 
 Button.displayName = 'Button';
+

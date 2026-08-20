@@ -14,8 +14,11 @@ import {
   User, 
   Navigation,
   ShieldAlert,
-  X
+  X,
+  Sparkles,
+  MapPin
 } from 'lucide-react';
+import { GoogleMapsFleetTracker, hasValidGoogleMapsKey } from './GoogleMapsFleetTracker';
 
 interface TelematicsMapProps {
   heightClassName?: string;
@@ -24,12 +27,38 @@ interface TelematicsMapProps {
 export const TelematicsMap: React.FC<TelematicsMapProps> = ({ heightClassName = 'h-[500px] lg:h-[650px]' }) => {
   const { vehicles, selectedVehicle, setSelectedVehicle, geofences, trips } = useFleet();
 
+  const [useGoogleMaps, setUseGoogleMaps] = useState<boolean>(true);
   const [zoom, setZoom] = useState<number>(1);
   const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [showGeofences, setShowGeofences] = useState(true);
   const [showRoutes, setShowRoutes] = useState(true);
+
+  if (useGoogleMaps) {
+    return (
+      <div className={`relative w-full overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 shadow-2xl ${heightClassName}`}>
+        <div className="absolute top-4 right-4 z-30 flex items-center gap-2">
+          <button
+            onClick={() => setUseGoogleMaps(false)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-300 shadow-xl backdrop-blur-md transition"
+            title="Ganti ke Tampilan Vector Ringan"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-blue-400" />
+            <span>Mode Peta Vector</span>
+          </button>
+        </div>
+        <GoogleMapsFleetTracker
+          selectedVehicleId={selectedVehicle?.id || null}
+          onSelectVehicle={(id) => {
+            const found = vehicles.find((v) => v.id === id);
+            if (found) setSelectedVehicle(found);
+          }}
+          heightClassName="h-full w-full rounded-2xl border-none"
+        />
+      </div>
+    );
+  }
 
   // Map projection logic (Jabodetabek / Jawa Focus)
   // Reference center: -6.2200, 106.9000

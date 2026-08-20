@@ -1,13 +1,22 @@
 import React from 'react';
 import { landingContent } from '../../config/landingContent';
-import { ArrowRight, Sparkles, Calendar } from 'lucide-react';
+import { ArrowRight, Sparkles, Calendar, PhoneCall } from 'lucide-react';
 
 interface FinalCtaSectionProps {
   onNavigateLogin: () => void;
+  onRequestDemo?: () => void;
 }
 
-export const FinalCtaSection: React.FC<FinalCtaSectionProps> = ({ onNavigateLogin }) => {
+export const FinalCtaSection: React.FC<FinalCtaSectionProps> = ({ onNavigateLogin, onRequestDemo }) => {
   const { title, subtitle, ctaPrimary, ctaSecondary } = landingContent.finalCta;
+
+  const handleDemo = () => {
+    if (onRequestDemo) {
+      onRequestDemo();
+    } else {
+      onNavigateLogin();
+    }
+  };
 
   return (
     <section className="py-20 sm:py-28 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 relative overflow-hidden border-b border-slate-900">
@@ -38,8 +47,8 @@ export const FinalCtaSection: React.FC<FinalCtaSectionProps> = ({ onNavigateLogi
           </button>
 
           <button
-            onClick={onNavigateLogin}
-            className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/90 px-7 py-4 text-sm font-semibold text-white hover:bg-slate-800 transition-all"
+            onClick={handleDemo}
+            className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/90 px-7 py-4 text-sm font-semibold text-white hover:bg-slate-800 hover:border-slate-700 transition-all"
           >
             <Calendar className="h-4 w-4 text-cyan-400" />
             <span>{ctaSecondary}</span>

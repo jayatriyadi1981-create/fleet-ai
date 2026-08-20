@@ -17,10 +17,12 @@ export class LeafletMapProvider implements MapProvider {
   private map: L.Map | null = null;
   private currentStyle: MapStyle = 'dark';
   private tileLayer: L.TileLayer | null = null;
+  private trafficLayer: L.TileLayer | null = null;
   private markers: Map<string, L.Marker> = new Map();
   private clusterMarkers: L.Marker[] = [];
   private polylines: Map<string, L.Polyline> = new Map();
   private selectedVehicleId: string | null = null;
+  private selectedVehicleIds: Set<string> = new Set();
   private onMarkerClickCallback: ((vehicleId: string) => void) | null = null;
 
   public initialize(container: HTMLElement, options?: MapProviderOptions): void {
@@ -41,6 +43,10 @@ export class LeafletMapProvider implements MapProvider {
     this.currentStyle = options?.style || 'dark';
     this.applyTileStyle(this.currentStyle);
 
+    if (options?.showTraffic) {
+      this.toggleTraffic(true);
+    }
+
     // Map viewport movement events
     if (options?.onMapMove) {
       this.map.on('moveend zoomend', () => {
@@ -56,8 +62,8 @@ export class LeafletMapProvider implements MapProvider {
     }
 
     if (options?.onMapClick) {
-      this.map.on('click', () => {
-        options.onMapClick!();
+      this.map.on('click', (e: L.LeafletMouseEvent) => {
+        options.onMapClick!({ lat: e.latlng.lat, lng: e.latlng.lng });
       });
     }
 
@@ -93,7 +99,7 @@ export class LeafletMapProvider implements MapProvider {
     const icon = this.createVehicleIcon(vehicle);
     const marker = L.marker([vehicle.latitude, vehicle.longitude], {
       icon,
-      zIndexOffset: this.selectedVehicleId === vehicle.vehicleId ? 1000 : 100
+      zIndexOffset: this.selectedVehicleId === vehicle.vehicleId || this.selectedVehicleIds.has(vehicle.vehicleId) ? 1000 : 100
     });
 
     marker.on('click', (e) => {
@@ -127,21 +133,38 @@ export class LeafletMapProvider implements MapProvider {
     const newLatLng = L.latLng(vehicle.latitude, vehicle.longitude);
 
     if (currentLatLng.lat !== newLatLng.lat || currentLatLng.lng !== newLatLng.lng) {
-      // Animate position smoothly
       this.animateMarkerPosition(marker, currentLatLng, newLatLng);
     }
 
     // Update icon appearance (heading, status, alert state, selection)
     const icon = this.createVehicleIcon(vehicle);
     marker.setIcon(icon);
-    marker.setZIndexOffset(this.selectedVehicleId === vehicle.vehicleId ? 1000 : 100);
+    marker.setZIndexOffset(
+      this.selectedVehicleId === vehicle.vehicleId || this.selectedVehicleIds.has(vehicle.vehicleId) ? 1000 : 100
+    );
   }
 
   public setSelectedMarker(vehicleId: string | null): void {
     this.selectedVehicleId = vehicleId;
-    // Refresh zIndexes
+    if (vehicleId) {
+      this.selectedVehicleIds.clear();
+      this.selectedVehicleIds.add(vehicleId);
+    } else {
+      this.selectedVehicleIds.clear();
+    }
+    this.refreshAllMarkerIcons();
+  }
+
+  public setSelectedMarkers(vehicleIds: string[]): void {
+    this.selectedVehicleIds = new Set(vehicleIds);
+    this.selectedVehicleId = vehicleIds.length === 1 ? vehicleIds[0] : null;
+    this.refreshAllMarkerIcons();
+  }
+
+  private refreshAllMarkerIcons(): void {
     this.markers.forEach((marker, vId) => {
-      marker.setZIndexOffset(vId === vehicleId ? 1000 : 100);
+      const isSel = this.selectedVehicleId === vId || this.selectedVehicleIds.has(vId);
+      marker.setZIndexOffset(isSel ? 1000 : 100);
     });
   }
 
@@ -158,7 +181,6 @@ export class LeafletMapProvider implements MapProvider {
   public setClusters(clusters: VehicleClusterData[], onClusterClick?: (cluster: VehicleClusterData) => void): void {
     if (!this.map) return;
 
-    // Clear existing cluster markers
     this.clusterMarkers.forEach((m) => this.map?.removeLayer(m));
     this.clusterMarkers = [];
 
@@ -166,12 +188,13 @@ export class LeafletMapProvider implements MapProvider {
       const clusterIcon = L.divIcon({
         className: 'custom-cluster-marker',
         html: `
-          <div class="flex items-center justify-center h-10 w-10 rounded-full bg-cyan-950/90 border-2 border-cyan-400 text-cyan-300 font-bold font-mono text-xs shadow-lg shadow-cyan-950/80 hover:scale-110 transition-transform cursor-pointer">
+          <div class="relative flex items-center justify-center h-11 w-11 rounded-full bg-cyan-950/95 border-2 border-cyan-400 text-cyan-300 font-bold font-mono text-xs shadow-xl shadow-cyan-950/80 hover:scale-115 transition-transform cursor-pointer">
+            <span class="animate-ping absolute inset-0 rounded-full bg-cyan-400 opacity-20 pointer-events-none"></span>
             ${cluster.count}
           </div>
         `,
-        iconSize: [40, 40],
-        iconAnchor: [20, 20]
+        iconSize: [44, 44],
+        iconAnchor: [22, 22]
       });
 
       const clusterMarker = L.marker(cluster.center, { icon: clusterIcon });
@@ -193,15 +216,15 @@ export class LeafletMapProvider implements MapProvider {
     });
   }
 
-  public drawPolyline(id: string, coords: Array<[number, number]>, color = '#06b6d4'): void {
+  public drawPolyline(id: string, coords: Array<[number, number]>, color = '#06b6d4', dashed = true): void {
     if (!this.map) return;
     this.clearPolyline(id);
 
     const polyline = L.polyline(coords, {
       color,
       weight: 4,
-      opacity: 0.8,
-      dashArray: '8, 8'
+      opacity: 0.85,
+      dashArray: dashed ? '8, 8' : undefined
     }).addTo(this.map);
 
     this.polylines.set(id, polyline);
@@ -219,6 +242,23 @@ export class LeafletMapProvider implements MapProvider {
     if (this.currentStyle === style) return;
     this.currentStyle = style;
     this.applyTileStyle(style);
+  }
+
+  public toggleTraffic(enable: boolean): void {
+    if (!this.map) return;
+    if (this.trafficLayer) {
+      this.map.removeLayer(this.trafficLayer);
+      this.trafficLayer = null;
+    }
+
+    if (enable) {
+      // TomTom / OpenTransport / OpenStreetMap flow overlay tiles
+      this.trafficLayer = L.tileLayer('https://{s}.tile.thunderforest.com/transport/{z}/{x}/{y}.png?apikey=6170aad10cd942889deac8d3c16f7393', {
+        maxZoom: 19,
+        opacity: 0.7,
+        attribution: '&copy; OpenStreetMap'
+      }).addTo(this.map);
+    }
   }
 
   public destroy(): void {
@@ -242,6 +282,7 @@ export class LeafletMapProvider implements MapProvider {
     let maxZoom = 19;
 
     switch (style) {
+      case 'street':
       case 'default':
         tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
         break;
@@ -251,6 +292,10 @@ export class LeafletMapProvider implements MapProvider {
       case 'satellite':
         tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
         maxZoom = 18;
+        break;
+      case 'terrain':
+        tileUrl = 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
+        maxZoom = 17;
         break;
       case 'dark':
       default:
@@ -266,38 +311,45 @@ export class LeafletMapProvider implements MapProvider {
   }
 
   private createVehicleIcon(vehicle: MapVehicle): L.DivIcon {
-    const isSelected = this.selectedVehicleId === vehicle.vehicleId;
+    const isSelected = this.selectedVehicleId === vehicle.vehicleId || this.selectedVehicleIds.has(vehicle.vehicleId);
     
-    // Status color mapping
-    let colorClass = 'bg-slate-500 border-slate-300 text-slate-100'; // Offline
+    // Status color mapping adhering to exact user request
+    let colorClass = 'bg-slate-600 border-slate-400 text-slate-100'; // Offline
     let glowClass = 'shadow-slate-900/50';
+    let pulseHtml = '';
 
     if (vehicle.status === 'Moving') {
       colorClass = 'bg-emerald-500 border-emerald-300 text-emerald-950';
       glowClass = 'shadow-emerald-500/50';
-    } else if (vehicle.status === 'Stopped') {
-      colorClass = 'bg-rose-500 border-rose-300 text-rose-950';
-      glowClass = 'shadow-rose-500/50';
+      pulseHtml = '<span class="absolute -inset-1.5 rounded-full animate-ping bg-emerald-400 opacity-40 pointer-events-none"></span>';
     } else if (vehicle.status === 'Idle') {
       colorClass = 'bg-amber-500 border-amber-300 text-amber-950';
       glowClass = 'shadow-amber-500/50';
-    } else if (vehicle.status === 'Unknown') {
-      colorClass = 'bg-purple-500 border-purple-300 text-purple-950';
-      glowClass = 'shadow-purple-500/50';
+    } else if (vehicle.status === 'Parking' || vehicle.status === 'Stopped') {
+      colorClass = 'bg-blue-600 border-blue-300 text-white';
+      glowClass = 'shadow-blue-500/50';
+    } else if (vehicle.status === 'Emergency') {
+      colorClass = 'bg-rose-600 border-rose-300 text-white animate-pulse';
+      glowClass = 'shadow-rose-600/80';
+      pulseHtml = '<span class="absolute -inset-2 rounded-full animate-ping bg-rose-500 opacity-75 pointer-events-none"></span>';
+    } else if (vehicle.status === 'Maintenance') {
+      colorClass = 'bg-orange-500 border-orange-300 text-orange-950';
+      glowClass = 'shadow-orange-500/50';
     }
 
     const headingRotation = vehicle.heading || 0;
 
     const html = `
-      <div class="relative flex flex-col items-center group">
-        ${vehicle.hasActiveAlert ? `
-          <div class="absolute -top-2 -right-2 z-20 flex h-4 w-4 items-center justify-center rounded-full bg-rose-600 text-white font-bold text-[9px] animate-bounce shadow-md">
+      <div class="relative flex flex-col items-center group cursor-pointer select-none">
+        ${pulseHtml}
+        ${vehicle.hasActiveAlert || vehicle.status === 'Emergency' ? `
+          <div class="absolute -top-2 -right-2 z-30 flex h-4 w-4 items-center justify-center rounded-full bg-rose-600 text-white font-bold text-[9px] animate-bounce shadow-md">
             !
           </div>
         ` : ''}
 
         <!-- Vehicle Marker Ring & Rotated Direction Pointer -->
-        <div class="relative flex items-center justify-center h-9 w-9 rounded-full ${colorClass} border-2 shadow-lg ${glowClass} transition-transform ${isSelected ? 'scale-125 ring-4 ring-cyan-400 ring-offset-2 ring-offset-slate-950' : 'hover:scale-110'}">
+        <div class="relative flex items-center justify-center h-9 w-9 rounded-full ${colorClass} border-2 shadow-xl ${glowClass} transition-transform ${isSelected ? 'scale-125 ring-4 ring-cyan-400 ring-offset-2 ring-offset-slate-950' : 'hover:scale-110'}">
           <!-- Rotated Direction Arrow -->
           <div style="transform: rotate(${headingRotation}deg);" class="transition-transform duration-300 flex items-center justify-center">
             <svg class="h-5 w-5 fill-current" viewBox="0 0 24 24">
@@ -306,9 +358,10 @@ export class LeafletMapProvider implements MapProvider {
           </div>
         </div>
 
-        <!-- Plate Badge Pill -->
-        <div class="mt-1 px-1.5 py-0.5 rounded bg-slate-900/90 border border-slate-700/80 text-[10px] font-mono font-bold text-slate-100 whitespace-nowrap shadow-md pointer-events-none">
-          ${vehicle.vehiclePlate}
+        <!-- Plate & Speed Badge Pill -->
+        <div class="mt-1 px-1.5 py-0.5 rounded bg-slate-900/90 border border-slate-700/80 text-[10px] font-mono font-bold text-slate-100 whitespace-nowrap shadow-md pointer-events-none flex items-center gap-1">
+          <span>${vehicle.vehiclePlate}</span>
+          ${vehicle.speed > 0 ? `<span class="text-emerald-400 font-semibold">${Math.round(vehicle.speed)}k</span>` : ''}
         </div>
       </div>
     `;
@@ -341,3 +394,4 @@ export class LeafletMapProvider implements MapProvider {
     requestAnimationFrame(animate);
   }
 }
+

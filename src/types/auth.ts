@@ -48,7 +48,8 @@ export type SecurityEventType =
   | 'MFA_DISABLED'
   | 'SESSION_REVOKED'
   | 'INVITATION_ACCEPTED'
-  | 'ACCOUNT_LOCKED';
+  | 'ACCOUNT_LOCKED'
+  | 'SUSPICIOUS_ACTIVITY';
 
 export interface SecurityAuditEvent {
   id: string;

@@ -17,11 +17,13 @@ import {
   BatteryCharging, 
   ShieldAlert, 
   Radio, 
-  ExternalLink,
-  History,
-  Phone,
-  Building2,
-  Cpu
+  History, 
+  Phone, 
+  Thermometer, 
+  MapPin, 
+  Compass, 
+  Satellite, 
+  Milestone
 } from 'lucide-react';
 import { MapVehicle } from '../../modules/maps/types';
 
@@ -46,12 +48,12 @@ export const VehicleMapPopup: React.FC<Props> = ({
 }) => {
   if (!vehicle) return null;
 
-  const cardinalDir = getCardinalDirection(vehicle.heading);
+  const cardinalDir = vehicle.cardinalDirection || getCardinalDirection(vehicle.heading);
   const timeAge = getRelativeAge(vehicle.lastSeenAt);
 
   return (
-    <div className="fixed md:absolute bottom-0 md:bottom-6 right-0 md:right-6 left-0 md:left-auto z-30 w-full md:w-[380px] p-2 md:p-0 animate-in slide-in-from-bottom-4 duration-200">
-      <div className="bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 rounded-2xl p-4 shadow-2xl text-slate-100 space-y-3">
+    <div className="fixed md:absolute bottom-16 md:bottom-6 right-0 md:right-6 left-0 md:left-auto z-30 w-full md:w-[420px] p-2 sm:p-3 md:p-0 animate-in slide-in-from-bottom-4 duration-200">
+      <div className="bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 rounded-2xl p-4 shadow-2xl text-slate-100 space-y-3 max-h-[78vh] overflow-y-auto">
         {/* Header Title & Close Button */}
         <div className="flex items-start justify-between border-b border-slate-800 pb-3">
           <div className="flex items-center gap-2.5">
@@ -67,7 +69,7 @@ export const VehicleMapPopup: React.FC<Props> = ({
                   ● {vehicle.status}
                 </span>
               </div>
-              <p className="text-xs text-slate-400 mt-0.5">{vehicle.vehicleName} • {vehicle.groupName}</p>
+              <p className="text-xs text-slate-400 mt-0.5">{vehicle.vehicleName} • <span className="text-cyan-400">{vehicle.groupCategory || vehicle.groupName}</span></p>
             </div>
           </div>
 
@@ -80,11 +82,11 @@ export const VehicleMapPopup: React.FC<Props> = ({
         </div>
 
         {/* Active Alert Banner if Present */}
-        {vehicle.hasActiveAlert && (
-          <div className="bg-rose-950/80 border border-rose-500/60 rounded-xl p-2.5 flex items-center gap-2 text-xs text-rose-200 shadow-md">
-            <ShieldAlert className="h-4 w-4 text-rose-400 shrink-0 animate-bounce" />
+        {(vehicle.hasActiveAlert || vehicle.status === 'Emergency') && (
+          <div className="bg-rose-950/80 border border-rose-500/60 rounded-xl p-2.5 flex items-center gap-2 text-xs text-rose-200 shadow-md animate-pulse">
+            <ShieldAlert className="h-4 w-4 text-rose-400 shrink-0" />
             <div className="truncate flex-1">
-              <span className="font-bold text-rose-300 block capitalize">{vehicle.alertCategory || 'Active Alert'}</span>
+              <span className="font-bold text-rose-300 block capitalize">{vehicle.alertCategory || 'Peringatan Darurat / SOS'}</span>
               <span className="text-[11px] text-rose-200/80 truncate block">{vehicle.alertMessage || 'Peringatan telematika terdeteksi!'}</span>
             </div>
           </div>
@@ -108,7 +110,7 @@ export const VehicleMapPopup: React.FC<Props> = ({
 
           {vehicle.driverScore !== undefined && (
             <div className="text-right font-mono">
-              <span className="text-[10px] text-slate-400 block">Behavior Score</span>
+              <span className="text-[10px] text-slate-400 block">Driver Score</span>
               <span className={`text-xs font-bold ${vehicle.driverScore >= 80 ? 'text-emerald-400' : 'text-amber-400'}`}>
                 {vehicle.driverScore}/100
               </span>
@@ -116,62 +118,121 @@ export const VehicleMapPopup: React.FC<Props> = ({
           )}
         </div>
 
-        {/* Live Telemetry Grid */}
+        {/* Live Telemetry Grid (Speed, Direction, Engine, GPS) */}
         <div className="grid grid-cols-2 gap-2 text-xs font-mono">
           <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-2.5 space-y-1">
-            <span className="text-[10px] text-slate-500 flex items-center gap-1">
-              <Gauge className="h-3 w-3 text-cyan-400" /> Kecepatan
+            <span className="text-[10px] text-slate-500 flex items-center justify-between">
+              <span className="flex items-center gap-1"><Gauge className="h-3 w-3 text-cyan-400" /> Kecepatan</span>
+              <span className="text-slate-500 text-[9px]">Max {vehicle.maxSpeedToday || 85}k</span>
             </span>
             <div className="text-sm font-bold text-cyan-300">
-              {vehicle.speed} <span className="text-[10px] text-slate-400">km/h</span>
+              {Math.round(vehicle.speed)} <span className="text-[10px] text-slate-400">km/h</span>
             </div>
           </div>
 
           <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-2.5 space-y-1">
             <span className="text-[10px] text-slate-500 flex items-center gap-1">
-              <Navigation className="h-3 w-3 text-cyan-400" /> Arah Kompas
+              <Compass className="h-3 w-3 text-cyan-400" /> Arah & Sudut
             </span>
             <div className="text-xs font-bold text-white flex items-center gap-1">
-              <span style={{ transform: `rotate(${vehicle.heading}deg)` }} className="inline-block transition-transform">
-                ↑
+              <span style={{ transform: `rotate(${vehicle.heading}deg)` }} className="inline-block transition-transform text-cyan-400 font-bold">
+                ▲
               </span>
-              <span>{cardinalDir} ({vehicle.heading}°)</span>
+              <span className="truncate">{cardinalDir} ({vehicle.heading}°)</span>
             </div>
           </div>
 
           <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-2.5 space-y-1">
-            <span className="text-[10px] text-slate-500 flex items-center gap-1">
-              <Zap className="h-3 w-3 text-amber-400" /> Ignition / Kontak
+            <span className="text-[10px] text-slate-500 flex items-center justify-between">
+              <span className="flex items-center gap-1"><Zap className="h-3 w-3 text-amber-400" /> Mesin / Kontak</span>
+              <span className="text-slate-500 text-[9px]">{vehicle.engineRpm || 0} RPM</span>
             </span>
             <div className={`text-xs font-bold ${vehicle.ignition ? 'text-emerald-400' : 'text-slate-400'}`}>
-              {vehicle.ignition ? 'ON (Nyala)' : 'OFF (Mati)'}
+              {vehicle.engineStatus || (vehicle.ignition ? 'ON (Nyala)' : 'OFF (Mati)')}
             </div>
           </div>
 
           <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-2.5 space-y-1">
-            <span className="text-[10px] text-slate-500 flex items-center gap-1">
-              <Wifi className="h-3 w-3 text-emerald-400" /> Sinyal GPS
+            <span className="text-[10px] text-slate-500 flex items-center justify-between">
+              <span className="flex items-center gap-1"><Satellite className="h-3 w-3 text-emerald-400" /> Status GPS</span>
+              <span className="text-slate-500 text-[9px]">{vehicle.satelliteCount || 14} Sats</span>
             </span>
-            <div className="text-xs font-bold text-emerald-400">
-              {vehicle.gpsSignal} (±{vehicle.accuracy || 8}m)
+            <div className="text-xs font-bold text-emerald-400 truncate">
+              {vehicle.gpsSignal} (±{vehicle.accuracy || 3.5}m)
             </div>
           </div>
         </div>
 
-        {/* Secondary Diagnostics */}
-        <div className="bg-slate-950/40 border border-slate-800/80 rounded-xl p-2.5 flex items-center justify-between text-[11px] font-mono text-slate-400">
-          <div className="flex items-center gap-1" title="Sisa Bahan Bakar">
-            <Fuel className="h-3 w-3 text-amber-400" />
-            <span>BBM {vehicle.fuelLevelPercent || 80}%</span>
+        {/* Secondary Diagnostics (Fuel, Odometer, Temperature, Voltage) */}
+        <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-3 space-y-2 font-mono text-xs">
+          <div>
+            <div className="flex items-center justify-between text-[11px] mb-1">
+              <span className="text-slate-400 flex items-center gap-1">
+                <Fuel className="h-3 w-3 text-amber-400" /> Bahan Bakar (BBM)
+              </span>
+              <span className="font-bold text-white">
+                {vehicle.fuelLevelPercent || 80}% <span className="text-slate-500 font-normal">({vehicle.fuelLitersRemaining || 64} / {vehicle.fuelTankCapacity || 80}L)</span>
+              </span>
+            </div>
+            <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+              <div 
+                className={`h-full rounded-full transition-all duration-500 ${
+                  (vehicle.fuelLevelPercent || 80) > 40 ? 'bg-emerald-500' : (vehicle.fuelLevelPercent || 80) > 20 ? 'bg-amber-500' : 'bg-rose-500'
+                }`}
+                style={{ width: `${vehicle.fuelLevelPercent || 80}%` }}
+              />
+            </div>
           </div>
-          <div className="flex items-center gap-1" title="Tegangan Aki/Baterai">
-            <BatteryCharging className="h-3 w-3 text-cyan-400" />
-            <span>Aki {vehicle.batteryVoltage || 12.8}V</span>
+
+          <div className="grid grid-cols-3 gap-2 pt-1 border-t border-slate-800/80 text-[11px]">
+            <div>
+              <span className="text-[10px] text-slate-500 block flex items-center gap-1">
+                <Milestone className="h-3 w-3 text-cyan-400" /> Odometer
+              </span>
+              <span className="font-bold text-slate-200">{(vehicle.odometerKm || 124500).toLocaleString('id-ID')} km</span>
+            </div>
+
+            <div>
+              <span className="text-[10px] text-slate-500 block flex items-center gap-1">
+                <Thermometer className="h-3 w-3 text-rose-400" /> Suhu
+              </span>
+              {vehicle.cargoTemperature !== null && vehicle.cargoTemperature !== undefined ? (
+                <div>
+                  <span className="font-bold text-cyan-300">{vehicle.cargoTemperature}°C</span>
+                  <span className="text-[9px] text-slate-500 block">Reefer Box</span>
+                </div>
+              ) : (
+                <div>
+                  <span className="font-bold text-slate-200">{vehicle.engineTemperature || 88.5}°C</span>
+                  <span className="text-[9px] text-slate-500 block">Mesin</span>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <span className="text-[10px] text-slate-500 block flex items-center gap-1">
+                <BatteryCharging className="h-3 w-3 text-amber-400" /> Voltase
+              </span>
+              <span className="font-bold text-slate-200">{vehicle.batteryVoltage || 12.6}V</span>
+            </div>
           </div>
-          <div className="flex items-center gap-1" title="Odometer Kendaraan">
-            <Cpu className="h-3 w-3 text-purple-400" />
-            <span>{(vehicle.odometerKm || 124500).toLocaleString('id-ID')} km</span>
+        </div>
+
+        {/* Location & Destination ETA */}
+        <div className="bg-slate-950/50 border border-slate-800/80 rounded-xl p-2.5 text-xs text-slate-300 space-y-1">
+          <div className="flex items-start gap-1.5">
+            <MapPin className="h-3.5 w-3.5 text-cyan-400 shrink-0 mt-0.5" />
+            <p className="text-[11px] leading-tight text-slate-300 font-sans">{vehicle.address || 'Kawasan Industri Pulogadung, Jakarta Timur'}</p>
           </div>
+
+          {vehicle.activeRouteDestination && (
+            <div className="pt-1 border-t border-slate-800/60 flex items-center justify-between text-[10px] font-mono text-cyan-300">
+              <span className="truncate">Tujuan: {vehicle.activeRouteDestination.name}</span>
+              <span className="text-white font-bold bg-cyan-950/80 px-1.5 py-0.2 rounded border border-cyan-800 whitespace-nowrap ml-1">
+                ETA: ~{vehicle.activeRouteDestination.etaMinutes} mnt
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Last Timestamp Footer */}
@@ -230,8 +291,12 @@ export const VehicleMapPopup: React.FC<Props> = ({
 function getStatusBadgeStyle(status: string): string {
   switch (status) {
     case 'Moving': return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
-    case 'Stopped': return 'bg-rose-500/20 text-rose-300 border-rose-500/40';
+    case 'Parking':
+    case 'Stopped': return 'bg-blue-500/20 text-blue-300 border-blue-500/40';
     case 'Idle': return 'bg-amber-500/20 text-amber-300 border-amber-500/40';
+    case 'Emergency': return 'bg-rose-500/30 text-rose-300 border-rose-500/60 animate-pulse';
+    case 'Maintenance': return 'bg-orange-500/20 text-orange-300 border-orange-500/40';
+    case 'Offline': return 'bg-slate-700/50 text-slate-400 border-slate-600';
     default: return 'bg-slate-800 text-slate-400 border-slate-700';
   }
 }

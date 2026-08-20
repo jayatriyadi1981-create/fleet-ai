@@ -679,7 +679,7 @@ class AuditService {
       metadata: params.securityMetadata,
       status: 'SUCCESS',
       severity: params.severity || 'HIGH',
-      source: 'API_GATEWAY',
+      source: 'PUBLIC_API',
     });
   }
 

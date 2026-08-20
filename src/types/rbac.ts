@@ -5,24 +5,65 @@
 
 export type SystemRole =
   | 'super_admin'
-  | 'company_admin'
+  | 'company_owner'
   | 'owner'
-  | 'director'
-  | 'executive'
+  | 'company_admin'
   | 'fleet_manager'
+  | 'operations_manager'
   | 'operations'
   | 'dispatcher'
-  | 'safety'
+  | 'supervisor'
   | 'driver'
   | 'maintenance'
   | 'finance'
+  | 'hr'
   | 'viewer';
 
 export type UserRole = SystemRole | string; // Supports custom roles
 
 export type PermissionAction = 'view' | 'create' | 'edit' | 'delete' | 'export' | 'approve' | 'execute' | 'admin';
 
-export type AccessScope = 'GLOBAL' | 'COMPANY' | 'BRANCH' | 'FLEET' | 'SELF' | 'ASSIGNED';
+export type AccessScope = 'GLOBAL' | 'COMPANY' | 'REGION' | 'BRANCH' | 'DEPARTMENT' | 'FLEET' | 'VEHICLE' | 'SELF' | 'ASSIGNED';
+
+export type RegionId = 'REGION_ALL' | 'REGION_WEST_JAVA' | 'REGION_CENTRAL_JAVA' | 'REGION_EAST_JAVA' | 'REGION_SUMATRA' | 'REGION_KALIMANTAN' | 'REGION_SULAWESI' | 'REGION_BALI_NUSA';
+
+export type DepartmentId = 
+  | 'DEPT_EXECUTIVE'
+  | 'DEPT_OPERATIONS'
+  | 'DEPT_FLEET_MANAGEMENT'
+  | 'DEPT_DISPATCH'
+  | 'DEPT_MAINTENANCE_WORKSHOP'
+  | 'DEPT_SAFETY_HSE'
+  | 'DEPT_FINANCE_ACCOUNTING'
+  | 'DEPT_HR_PEOPLE'
+  | 'DEPT_IT_SECURITY';
+
+export type MenuPermissionKey =
+  | 'menu_command_center'
+  | 'menu_executive_dashboard'
+  | 'menu_live_tracking'
+  | 'menu_fleet_vehicles'
+  | 'menu_drivers'
+  | 'menu_trips_dispatch'
+  | 'menu_routes'
+  | 'menu_geofence'
+  | 'menu_fuel'
+  | 'menu_maintenance'
+  | 'menu_safety_fatigue'
+  | 'menu_inspection'
+  | 'menu_rent_car'
+  | 'menu_cost_analytics'
+  | 'menu_reports'
+  | 'menu_analytics'
+  | 'menu_ai_copilot'
+  | 'menu_automation'
+  | 'menu_documents'
+  | 'menu_users_roles'
+  | 'menu_security_center'
+  | 'menu_subscription'
+  | 'menu_settings'
+  | 'menu_gps_integration'
+  | 'menu_super_admin';
 
 export type ResourceModule =
   | 'command_center'
@@ -40,6 +81,7 @@ export type ResourceModule =
   | 'alert'
   | 'safety'
   | 'inspection'
+  | 'rent_car'
   | 'fuel'
   | 'maintenance'
   | 'work_order'
@@ -60,15 +102,31 @@ export type ResourceModule =
   | 'automation'
   | 'document'
   | 'audit'
-  | 'security';
+  | 'security'
+  | 'hr';
 
 export interface PermissionDefinition {
   key: string; // e.g. 'vehicle.view'
   module: ResourceModule;
   action: PermissionAction;
-  label: string; // Indonesian display label
+  label: string; // Display label
   description: string;
   moduleGroup: string; // Group title for UI matrix
+}
+
+export interface GranularPermissionScope {
+  // Granular dimensions as requested: Module, Menu, Action, Vehicle, Branch, Department, Region
+  modules: ResourceModule[];
+  allowedMenus: MenuPermissionKey[];
+  allowedActions: PermissionAction[];
+  vehicleScope: 'ALL' | 'BRANCH_ONLY' | 'ASSIGNED_ONLY' | 'CUSTOM' | string;
+  specificVehicleIds?: string[];
+  branchScope: 'ALL' | 'ASSIGNED_BRANCHES' | 'CUSTOM' | string;
+  specificBranchIds?: string[];
+  departmentScope: 'ALL' | 'ASSIGNED_DEPT' | 'CUSTOM' | DepartmentId | string;
+  specificDepartmentIds?: DepartmentId[];
+  regionScope: 'ALL' | 'ASSIGNED_REGIONS' | 'CUSTOM' | RegionId | string;
+  specificRegionIds?: RegionId[];
 }
 
 export interface RoleDefinition {
@@ -80,6 +138,7 @@ export interface RoleDefinition {
   isActive: boolean;
   usersCount: number;
   permissions: string[]; // List of permission keys e.g. ['vehicle.view', 'vehicle.edit']
+  granularScope?: GranularPermissionScope;
   createdAt: string;
   updatedAt: string;
 }
@@ -89,7 +148,10 @@ export interface UserRoleScope {
   roleId: UserRole;
   tenantId: string;
   scopeType: AccessScope;
+  regionIds?: RegionId[];
   branchIds?: string[];
+  departmentIds?: DepartmentId[];
+  vehicleIds?: string[];
   fleetIds?: string[];
 }
 

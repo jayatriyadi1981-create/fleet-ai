@@ -63,6 +63,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             id={generatedId}
             type={computedType}
             disabled={disabled}
+            aria-invalid={!!errorMessage}
+            aria-describedby={errorMessage ? `${generatedId}-error` : helperText ? `${generatedId}-helper` : undefined}
             className={`w-full rounded-xl bg-slate-900/90 py-2.5 text-xs text-white placeholder-slate-500 border transition-all outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed ${
               leftIcon ? 'pl-10' : 'pl-4'
             } ${rightIcon || isPassword || errorMessage || isSuccess ? 'pr-10' : 'pr-4'} ${borderStyles} ${className}`}
@@ -72,6 +74,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           {isPassword && (
             <button
               type="button"
+              aria-label={showPassword ? 'Sembunyikan password' : 'Lihat password'}
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
             >
@@ -80,30 +83,31 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           )}
 
           {!isPassword && errorMessage && (
-            <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-rose-400">
+            <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-rose-400 pointer-events-none">
               <AlertCircle className="h-4 w-4" />
             </div>
           )}
 
           {!isPassword && !errorMessage && isSuccess && (
-            <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-emerald-400">
+            <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-emerald-400 pointer-events-none">
               <CheckCircle2 className="h-4 w-4" />
             </div>
           )}
 
           {!isPassword && !errorMessage && !isSuccess && rightIcon && (
-            <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 flex items-center">
+            <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 flex items-center pointer-events-none">
               {rightIcon}
             </div>
           )}
         </div>
 
         {errorMessage ? (
-          <p className="text-[11px] font-medium text-rose-400 flex items-center gap-1">
+          <p id={`${generatedId}-error`} className="text-[11px] font-medium text-rose-400 flex items-center gap-1">
+            <AlertCircle className="h-3 w-3 shrink-0" />
             <span>{errorMessage}</span>
           </p>
         ) : helperText ? (
-          <p className="text-[11px] text-slate-400">{helperText}</p>
+          <p id={`${generatedId}-helper`} className="text-[11px] text-slate-400">{helperText}</p>
         ) : null}
       </div>
     );

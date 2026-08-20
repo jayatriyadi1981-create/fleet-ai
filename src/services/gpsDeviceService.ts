@@ -71,6 +71,7 @@ class GPSDeviceService {
     status?: string;
     connectionStatus?: string;
     healthStatus?: string;
+    specificHealth?: string;
     protocolId?: string;
     manufacturer?: string;
     simProvider?: string;
@@ -89,6 +90,10 @@ class GPSDeviceService {
           d.serialNumber.toLowerCase().includes(q) ||
           (d.vehiclePlate && d.vehiclePlate.toLowerCase().includes(q)) ||
           (d.simNumber && d.simNumber.toLowerCase().includes(q)) ||
+          (d.simProvider && d.simProvider.toLowerCase().includes(q)) ||
+          (d.apn && d.apn.toLowerCase().includes(q)) ||
+          d.protocolName.toLowerCase().includes(q) ||
+          d.firmwareVersion.toLowerCase().includes(q) ||
           d.manufacturer.toLowerCase().includes(q) ||
           d.model.toLowerCase().includes(q)
       );
@@ -104,6 +109,10 @@ class GPSDeviceService {
 
     if (params?.healthStatus && params.healthStatus !== 'all') {
       result = result.filter((d) => d.healthStatus === params.healthStatus);
+    }
+
+    if (params?.specificHealth && params.specificHealth !== 'all') {
+      result = result.filter((d) => d.specificHealth === params.specificHealth);
     }
 
     if (params?.protocolId && params.protocolId !== 'all') {
@@ -473,10 +482,27 @@ class GPSDeviceService {
       ...mockNormalizedTelemetry,
       deviceId: deviceId,
       vehicleId: dev?.vehicleId || 'V-001',
-      timestamp: new Date().toISOString(),
-      satellites: dev?.satellitesCount || 12,
-      batteryVoltage: dev?.batteryVoltage || 4.1,
-      externalVoltage: dev?.externalVoltage || 13.8
+      timestamp: dev?.lastPingAt || new Date().toISOString(),
+      satellites: dev?.satellitesCount !== undefined ? dev.satellitesCount : 12,
+      accuracy: dev?.gpsAccuracyMeters !== undefined ? dev.gpsAccuracyMeters : 2.4,
+      batteryVoltage: dev?.batteryVoltage !== undefined ? dev.batteryVoltage : 4.1,
+      externalVoltage: dev?.externalVoltage !== undefined ? dev.externalVoltage : 13.8,
+      speed: dev?.speed !== undefined ? dev.speed : mockNormalizedTelemetry.speed,
+      rpm: dev?.rpm !== undefined ? dev.rpm : mockNormalizedTelemetry.rpm,
+      ignition: dev?.ignition !== undefined ? dev.ignition : mockNormalizedTelemetry.ignition,
+      fuelLevelPercent: dev?.fuelLevelPercent !== undefined ? dev.fuelLevelPercent : mockNormalizedTelemetry.fuelLevelPercent,
+      fuelLiters: dev?.fuelLiters !== undefined ? dev.fuelLiters : mockNormalizedTelemetry.fuelLiters,
+      engineTempCelsius: dev?.engineTempCelsius !== undefined ? dev.engineTempCelsius : mockNormalizedTelemetry.engineTempCelsius,
+      cabinTempCelsius: dev?.cabinTempCelsius !== undefined ? dev.cabinTempCelsius : mockNormalizedTelemetry.cabinTempCelsius,
+      cargoTempCelsius: dev?.cargoTempCelsius !== undefined ? dev.cargoTempCelsius : mockNormalizedTelemetry.cargoTempCelsius,
+      doorFrontOpen: dev?.doorFrontOpen !== undefined ? dev.doorFrontOpen : mockNormalizedTelemetry.doorFrontOpen,
+      doorRearOpen: dev?.doorRearOpen !== undefined ? dev.doorRearOpen : mockNormalizedTelemetry.doorRearOpen,
+      doorStatus: dev?.doorStatus || mockNormalizedTelemetry.doorStatus,
+      engineHours: dev?.engineHours !== undefined ? dev.engineHours : mockNormalizedTelemetry.engineHours,
+      odometerKm: dev?.odometerKm !== undefined ? dev.odometerKm : mockNormalizedTelemetry.odometerKm,
+      acStatus: dev?.acStatus !== undefined ? dev.acStatus : mockNormalizedTelemetry.acStatus,
+      ptoStatus: dev?.ptoStatus !== undefined ? dev.ptoStatus : mockNormalizedTelemetry.ptoStatus,
+      gpsFixStatus: dev?.gpsFixStatus || mockNormalizedTelemetry.gpsFixStatus
     };
   }
 

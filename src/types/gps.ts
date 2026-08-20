@@ -9,6 +9,14 @@ export type DeviceConnectionStatus = 'online' | 'offline' | 'delayed' | 'unknown
 
 export type DeviceHealthStatus = 'healthy' | 'warning' | 'critical' | 'unknown';
 
+export type SpecificDeviceHealth =
+  | 'online'
+  | 'offline'
+  | 'weak_signal'
+  | 'gps_lost'
+  | 'power_disconnected'
+  | 'battery_low';
+
 export type DeviceInventoryStatus = 'installed' | 'in_stock' | 'maintenance' | 'replacement' | 'lost' | 'retired' | 'archived';
 
 export type SIMProvider = 'Telkomsel' | 'Indosat' | 'XL' | 'Tri' | 'Smartfren' | 'Other';
@@ -55,6 +63,7 @@ export interface GPSDeviceExtended {
   simId?: string;
   simNumber?: string;
   simProvider?: SIMProvider;
+  apn?: string;
   vehicleId?: string;
   vehiclePlate?: string;
   branchId?: string;
@@ -63,6 +72,7 @@ export interface GPSDeviceExtended {
   installationDate?: string;
   lastPingAt: string; // ISO String
   lastSuccessfulMessageAt?: string;
+  lastConnection?: string;
   messagesToday: number;
   messagesFailed: number;
   
@@ -74,6 +84,25 @@ export interface GPSDeviceExtended {
   gpsAccuracyMeters?: number;
   hdop?: number;
   connectionLatencyMs?: number;
+
+  // Specific Health & Telemetry State
+  specificHealth?: SpecificDeviceHealth;
+  ignition?: boolean;
+  speed?: number;
+  rpm?: number;
+  fuelLevelPercent?: number;
+  fuelLiters?: number;
+  engineTempCelsius?: number;
+  cabinTempCelsius?: number;
+  cargoTempCelsius?: number;
+  doorFrontOpen?: boolean;
+  doorRearOpen?: boolean;
+  doorStatus?: 'open' | 'closed';
+  engineHours?: number;
+  odometerKm?: number;
+  acStatus?: boolean;
+  ptoStatus?: boolean;
+  gpsFixStatus?: 'locked' | 'searching' | 'lost';
   
   notes?: string;
   createdAt: string;
@@ -157,6 +186,18 @@ export interface NormalizedTelemetry {
   externalVoltage: number;
   odometerKm: number;
   fuelLevelPercent?: number;
+  fuelLiters?: number;
+  rpm?: number;
+  engineTempCelsius?: number;
+  cabinTempCelsius?: number;
+  cargoTempCelsius?: number;
+  doorFrontOpen?: boolean;
+  doorRearOpen?: boolean;
+  doorStatus?: 'open' | 'closed';
+  engineHours?: number;
+  acStatus?: boolean;
+  ptoStatus?: boolean;
+  gpsFixStatus?: 'locked' | 'searching' | 'lost';
   rawDataReference?: string;
 }
 

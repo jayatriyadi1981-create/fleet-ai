@@ -21,6 +21,14 @@ class AuthService {
     return this.provider.login.bind(this.provider);
   }
 
+  public get loginWithSSO() {
+    return this.provider.loginWithSSO.bind(this.provider);
+  }
+
+  public get loginWithOTP() {
+    return this.provider.loginWithOTP.bind(this.provider);
+  }
+
   public get register() {
     return this.provider.register.bind(this.provider);
   }
@@ -79,6 +87,10 @@ class AuthService {
 
   public get revokeAllSessions() {
     return this.provider.revokeAllSessions.bind(this.provider);
+  }
+
+  public get forceLogoutUser() {
+    return this.provider.forceLogoutUser.bind(this.provider);
   }
 
   public get changePassword() {

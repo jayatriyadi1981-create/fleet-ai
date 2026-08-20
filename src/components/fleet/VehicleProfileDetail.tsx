@@ -8,12 +8,22 @@ import {
   VehicleExtended, 
   VehicleDocument, 
   VehicleActivityLog, 
-  VehicleAIInsightDetail 
+  VehicleAIInsightDetail,
+  VehicleTripRecord,
+  VehicleFuelRecord,
+  VehicleMaintenanceRecord,
+  VehicleAlertRecord,
+  VehicleLifecycleStatus
 } from '../../types/vehicle';
 import { vehicleService } from '../../services/vehicleService';
 import { useFleet } from '../../context/FleetContext';
 import { useToast } from '../ui/Toast';
 import { AssignDriverModal, AssignGpsModal } from './AssignModals';
+import { TripsTab } from './tabs/TripsTab';
+import { FuelTab } from './tabs/FuelTab';
+import { MaintenanceTab } from './tabs/MaintenanceTab';
+import { SafetyTab } from './tabs/SafetyTab';
+import { AiHealthTab } from './tabs/AiHealthTab';
 import { 
   ArrowLeft, 
   Truck, 
@@ -40,7 +50,9 @@ import {
   Plus,
   Zap,
   Activity,
-  Award
+  Award,
+  Layers,
+  ChevronDown
 } from 'lucide-react';
 
 interface VehicleProfileDetailProps {
@@ -61,6 +73,10 @@ export const VehicleProfileDetail: React.FC<VehicleProfileDetailProps> = ({
   const [documents, setDocuments] = useState<VehicleDocument[]>([]);
   const [activityLogs, setActivityLogs] = useState<VehicleActivityLog[]>([]);
   const [aiInsight, setAiInsight] = useState<VehicleAIInsightDetail | null>(null);
+  const [trips, setTrips] = useState<VehicleTripRecord[]>([]);
+  const [fuelRecords, setFuelRecords] = useState<VehicleFuelRecord[]>([]);
+  const [maintenanceRecords, setMaintenanceRecords] = useState<VehicleMaintenanceRecord[]>([]);
+  const [alerts, setAlerts] = useState<VehicleAlertRecord[]>([]);
 
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<
@@ -71,6 +87,9 @@ export const VehicleProfileDetail: React.FC<VehicleProfileDetailProps> = ({
   const [isAssignDriverOpen, setIsAssignDriverOpen] = useState(false);
   const [isAssignGpsOpen, setIsAssignGpsOpen] = useState(false);
   const [isAddDocOpen, setIsAddDocOpen] = useState(false);
+  const [isLifecycleModalOpen, setIsLifecycleModalOpen] = useState(false);
+  const [selectedLifecycle, setSelectedLifecycle] = useState<VehicleLifecycleStatus>('active');
+  const [lifecycleReason, setLifecycleReason] = useState('');
 
   // Document Modal Form State
   const [newDocData, setNewDocData] = useState({
@@ -91,16 +110,25 @@ export const VehicleProfileDetail: React.FC<VehicleProfileDetailProps> = ({
         return;
       }
       setVehicle(veh);
+      setSelectedLifecycle(veh.lifecycleStatus || 'active');
 
-      const [docs, logs, ai] = await Promise.all([
+      const [docs, logs, ai, trps, fuel, maint, alrts] = await Promise.all([
         vehicleService.getVehicleDocuments(vehicleId),
         vehicleService.getVehicleActivityLogs(vehicleId),
         vehicleService.getVehicleAIInsight(vehicleId),
+        vehicleService.getVehicleTrips(vehicleId),
+        vehicleService.getVehicleFuelRecords(vehicleId),
+        vehicleService.getVehicleMaintenanceRecords(vehicleId),
+        vehicleService.getVehicleAlerts(vehicleId),
       ]);
 
       setDocuments(docs);
       setActivityLogs(logs);
       setAiInsight(ai);
+      setTrips(trps);
+      setFuelRecords(fuel);
+      setMaintenanceRecords(maint);
+      setAlerts(alrts);
     } catch (err: any) {
       addToast({ type: 'error', title: 'Error', message: err.message || 'Gagal memuat profil' });
     } finally {
@@ -129,6 +157,54 @@ export const VehicleProfileDetail: React.FC<VehicleProfileDetailProps> = ({
       } catch (err: any) {
         addToast({ type: 'error', title: 'Gagal', message: err.message || 'Gagal mengarsipkan' });
       }
+    }
+  };
+
+  const handleLifecycleChangeSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!vehicle) return;
+    try {
+      await vehicleService.updateVehicleLifecycle(vehicle.id, selectedLifecycle, lifecycleReason);
+      addToast({
+        type: 'success',
+        title: 'Status Lifecycle Diperbarui',
+        message: `Status unit berhasil diubah menjadi "${selectedLifecycle.toUpperCase()}".`,
+      });
+      setIsLifecycleModalOpen(false);
+      setLifecycleReason('');
+      loadData();
+    } catch (err: any) {
+      addToast({ type: 'error', title: 'Gagal', message: err.message || 'Gagal mengubah status lifecycle' });
+    }
+  };
+
+  const handleAddFuelRecord = async (data: any) => {
+    try {
+      await vehicleService.addVehicleFuelRecord(vehicleId, data);
+      addToast({ type: 'success', title: 'BBM Dicatat', message: 'Pencatatan pengisian bahan bakar berhasil disimpan.' });
+      loadData();
+    } catch (err: any) {
+      addToast({ type: 'error', title: 'Gagal', message: err.message || 'Gagal mencatat BBM' });
+    }
+  };
+
+  const handleAddMaintenanceRecord = async (data: any) => {
+    try {
+      await vehicleService.addVehicleMaintenanceRecord(vehicleId, data);
+      addToast({ type: 'success', title: 'Work Order Dibuat', message: 'Work order pemeliharaan berhasil disimpan.' });
+      loadData();
+    } catch (err: any) {
+      addToast({ type: 'error', title: 'Gagal', message: err.message || 'Gagal membuat work order' });
+    }
+  };
+
+  const handleResolveAlert = async (alertId: string, note: string) => {
+    try {
+      await vehicleService.resolveVehicleAlert(alertId, vehicleId, note);
+      addToast({ type: 'success', title: 'Peringatan Diselesaikan', message: 'Status peringatan diperbarui menjadi resolved.' });
+      loadData();
+    } catch (err: any) {
+      addToast({ type: 'error', title: 'Gagal', message: err.message || 'Gagal menyelesaikan alert' });
     }
   };
 
@@ -178,6 +254,25 @@ export const VehicleProfileDetail: React.FC<VehicleProfileDetailProps> = ({
     );
   }
 
+  const getLifecycleBadge = (status: VehicleLifecycleStatus) => {
+    switch (status) {
+      case 'active':
+        return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
+      case 'inactive':
+        return 'bg-slate-700/40 text-slate-300 border-slate-600/40';
+      case 'maintenance':
+        return 'bg-amber-500/20 text-amber-300 border-amber-500/30';
+      case 'rental':
+        return 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30';
+      case 'sold':
+        return 'bg-purple-500/20 text-purple-300 border-purple-500/30';
+      case 'retired':
+        return 'bg-rose-500/20 text-rose-300 border-rose-500/30';
+      default:
+        return 'bg-slate-800 text-slate-300 border-slate-700';
+    }
+  };
+
   return (
     <div className="space-y-6 pb-12">
       {/* Top Header Card */}
@@ -205,19 +300,16 @@ export const VehicleProfileDetail: React.FC<VehicleProfileDetailProps> = ({
                 <span className="rounded-lg bg-slate-800 px-2.5 py-0.5 text-xs font-semibold text-slate-300 capitalize">
                   {vehicle.type.replace('_', ' ')}
                 </span>
-                <span
-                  className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider ${
-                    vehicle.status === 'moving'
-                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                      : vehicle.status === 'idle'
-                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                      : vehicle.status === 'under_maintenance'
-                      ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                      : 'bg-slate-800 text-slate-400'
-                  }`}
+                <button
+                  onClick={() => setIsLifecycleModalOpen(true)}
+                  className={`rounded-full px-3 py-0.5 text-[11px] font-bold uppercase tracking-wider border flex items-center gap-1.5 transition-all hover:brightness-125 ${getLifecycleBadge(
+                    vehicle.lifecycleStatus || 'active'
+                  )}`}
+                  title="Klik untuk mengubah status siklus hidup armada"
                 >
-                  ● {vehicle.status.replace('_', ' ')}
-                </span>
+                  <span>● LIFECYCLE: {vehicle.lifecycleStatus || 'active'}</span>
+                  <ChevronDown className="h-3 w-3 opacity-70" />
+                </button>
               </div>
 
               <h1 className="text-2xl font-black text-white tracking-tight">{vehicle.name}</h1>
@@ -225,7 +317,7 @@ export const VehicleProfileDetail: React.FC<VehicleProfileDetailProps> = ({
               <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400 pt-1">
                 <span className="flex items-center gap-1.5">
                   <Building2 className="h-3.5 w-3.5 text-cyan-400" />
-                  {vehicle.branchName}
+                  {vehicle.branchName} ({vehicle.region || 'Jabodetabek & Banten'})
                 </span>
                 <span>•</span>
                 <span className="flex items-center gap-1.5">
@@ -281,12 +373,12 @@ export const VehicleProfileDetail: React.FC<VehicleProfileDetailProps> = ({
           { id: 'overview', label: 'Ringkasan', icon: Truck },
           { id: 'gps', label: 'Telematika GPS', icon: Navigation },
           { id: 'driver', label: 'Pengemudi', icon: User },
-          { id: 'trips', label: 'Perjalanan', icon: MapPin },
-          { id: 'fuel', label: 'BBM & Efisiensi', icon: Fuel },
-          { id: 'maintenance', label: 'Pemeliharaan', icon: Wrench },
-          { id: 'safety', label: 'Keselamatan', icon: ShieldAlert },
+          { id: 'trips', label: `Perjalanan (${trips.length})`, icon: MapPin },
+          { id: 'fuel', label: `BBM & Efisiensi (${fuelRecords.length})`, icon: Fuel },
+          { id: 'maintenance', label: `Pemeliharaan (${maintenanceRecords.length})`, icon: Wrench },
+          { id: 'safety', label: `Keselamatan (${alerts.length})`, icon: ShieldAlert },
           { id: 'documents', label: `Dokumen Legal (${documents.length})`, icon: FileText },
-          { id: 'activity', label: 'Audit Log Timeline', icon: History },
+          { id: 'activity', label: `Audit Log (${activityLogs.length})`, icon: History },
           { id: 'ai', label: 'AI Health & Diagnostic', icon: Sparkles },
         ].map((tab) => {
           const Icon = tab.icon;
@@ -390,6 +482,12 @@ export const VehicleProfileDetail: React.FC<VehicleProfileDetailProps> = ({
                   <span className="font-mono text-slate-200">{vehicle.engineNumber}</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-slate-800/60">
+                  <span className="text-slate-400">Kapasitas Muatan</span>
+                  <span className="font-semibold text-white">
+                    {vehicle.capacity?.formatted || `${vehicle.payloadKg || 12000} Kg Payload`}
+                  </span>
+                </div>
+                <div className="flex justify-between py-1 border-b border-slate-800/60">
                   <span className="text-slate-400">Bahan Bakar</span>
                   <span className="font-semibold text-emerald-400 uppercase">{vehicle.fuelType.replace('_', ' ')}</span>
                 </div>
@@ -485,13 +583,22 @@ export const VehicleProfileDetail: React.FC<VehicleProfileDetailProps> = ({
               </p>
             </div>
 
-            <button
-              onClick={handleTrackLive}
-              className="flex items-center gap-2 rounded-xl bg-cyan-500 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-cyan-400"
-            >
-              <ExternalLink className="h-4 w-4" />
-              Buka Peta Tracking Penuh
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsAssignGpsOpen(true)}
+                className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-800 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-700"
+              >
+                <Radio className="h-4 w-4 text-cyan-400" />
+                Ganti Perangkat GPS
+              </button>
+              <button
+                onClick={handleTrackLive}
+                className="flex items-center gap-2 rounded-xl bg-cyan-500 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-cyan-400"
+              >
+                <ExternalLink className="h-4 w-4" />
+                Buka Peta Tracking Penuh
+              </button>
+            </div>
           </div>
 
           {/* Telemetry Gauges */}
@@ -579,93 +686,33 @@ export const VehicleProfileDetail: React.FC<VehicleProfileDetailProps> = ({
       )}
 
       {/* 4. TRIPS TAB */}
-      {activeTab === 'trips' && (
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 space-y-4">
-          <h3 className="text-base font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-3">
-            <MapPin className="h-5 w-5 text-cyan-400" />
-            Riwayat Perjalanan & In-Transit Dispatch
-          </h3>
-
-          <div className="rounded-xl border border-slate-800 bg-slate-950 p-4 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-bold text-white">TRP-20260813-001 (Jakarta - Surabaya)</p>
-              <p className="text-xs text-slate-400">Kargo: 18 Ton Biodiesel B35 • Jarak: 780 KM</p>
-            </div>
-            <span className="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-300 border border-emerald-500/30">
-              IN PROGRESS
-            </span>
-          </div>
-        </div>
-      )}
+      {activeTab === 'trips' && <TripsTab trips={trips} />}
 
       {/* 5. FUEL TAB */}
       {activeTab === 'fuel' && (
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 space-y-4">
-          <h3 className="text-base font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-3">
-            <Fuel className="h-5 w-5 text-emerald-400" />
-            Monitoring Refill BBM & Deteksi Anomali AI
-          </h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="rounded-xl border border-slate-800 bg-slate-950 p-4">
-              <p className="text-[10px] font-bold text-slate-400 uppercase">Efisiensi Rata-rata</p>
-              <p className="text-xl font-mono font-bold text-emerald-400">3.8 KM / Liter</p>
-            </div>
-            <div className="rounded-xl border border-slate-800 bg-slate-950 p-4">
-              <p className="text-[10px] font-bold text-slate-400 uppercase">Pengisian Bulan Ini</p>
-              <p className="text-xl font-mono font-bold text-white">450 Liter</p>
-            </div>
-            <div className="rounded-xl border border-slate-800 bg-slate-950 p-4">
-              <p className="text-[10px] font-bold text-slate-400 uppercase">Total Biaya BBM</p>
-              <p className="text-xl font-mono font-bold text-cyan-300">Rp 6.850.000</p>
-            </div>
-          </div>
-        </div>
+        <FuelTab
+          vehicleId={vehicle.id}
+          fuelRecords={fuelRecords}
+          onAddFuelRecord={handleAddFuelRecord}
+        />
       )}
 
       {/* 6. MAINTENANCE TAB */}
       {activeTab === 'maintenance' && (
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 space-y-4">
-          <h3 className="text-base font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-3">
-            <Wrench className="h-5 w-5 text-amber-400" />
-            Jadwal Pemeliharaan & Work Order Bengkel
-          </h3>
-
-          <div className="rounded-xl border border-slate-800 bg-slate-950 p-4 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-bold text-white">Servis Berkala 85.000 KM (Oli & Filter)</p>
-              <p className="text-xs text-slate-400">Bengkel: Hino Authorized Dealer Cikarang</p>
-            </div>
-            <span className="rounded-full bg-cyan-500/20 px-3 py-1 text-xs font-bold text-cyan-300 border border-cyan-500/30">
-              SCHEDULED
-            </span>
-          </div>
-        </div>
+        <MaintenanceTab
+          vehicleId={vehicle.id}
+          maintenanceRecords={maintenanceRecords}
+          onAddMaintenanceRecord={handleAddMaintenanceRecord}
+        />
       )}
 
       {/* 7. SAFETY TAB */}
       {activeTab === 'safety' && (
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 space-y-4">
-          <h3 className="text-base font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-3">
-            <ShieldAlert className="h-5 w-5 text-rose-400" />
-            Keselamatan Berkendara & Telematika Pelanggaran
-          </h3>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="rounded-xl border border-slate-800 bg-slate-950 p-4">
-              <p className="text-[10px] font-bold text-slate-400 uppercase">Overspeed Alerts</p>
-              <p className="text-xl font-mono font-bold text-amber-400">1 Kejadian</p>
-            </div>
-            <div className="rounded-xl border border-slate-800 bg-slate-950 p-4">
-              <p className="text-[10px] font-bold text-slate-400 uppercase">Harsh Braking</p>
-              <p className="text-xl font-mono font-bold text-emerald-400">0 Kejadian</p>
-            </div>
-            <div className="rounded-xl border border-slate-800 bg-slate-950 p-4">
-              <p className="text-[10px] font-bold text-slate-400 uppercase">Fatigue Alarm</p>
-              <p className="text-xl font-mono font-bold text-emerald-400">0 Kejadian</p>
-            </div>
-          </div>
-        </div>
+        <SafetyTab
+          vehicleId={vehicle.id}
+          alerts={alerts}
+          onResolveAlert={handleResolveAlert}
+        />
       )}
 
       {/* 8. DOCUMENTS TAB */}
@@ -747,34 +794,7 @@ export const VehicleProfileDetail: React.FC<VehicleProfileDetailProps> = ({
       )}
 
       {/* 10. AI INTELLIGENCE TAB */}
-      {activeTab === 'ai' && (
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 space-y-6">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-purple-400" />
-              AI Predictive Diagnostic & Anomaly Engine
-            </h3>
-            <span className="rounded-full bg-purple-500/20 px-3 py-1 text-xs font-bold text-purple-300 border border-purple-500/30">
-              HEALTH SCORE: {aiInsight?.healthScore || 88}/100
-            </span>
-          </div>
-
-          <div className="space-y-3">
-            {aiInsight?.anomalies.map((anom) => (
-              <div key={anom.id} className="rounded-xl border border-purple-500/30 bg-purple-950/20 p-4 space-y-2">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs font-bold text-purple-200">{anom.title}</p>
-                  <span className="text-[10px] font-mono text-purple-400">Confidence: {anom.confidencePercent}%</span>
-                </div>
-                <p className="text-xs text-slate-300">{anom.description}</p>
-                <p className="text-xs text-cyan-300 font-semibold pt-1 border-t border-purple-900/50">
-                  💡 Rekomendasi AI: {anom.recommendation}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {activeTab === 'ai' && <AiHealthTab aiInsight={aiInsight} />}
 
       {/* Modals */}
       <AssignDriverModal
@@ -794,6 +814,64 @@ export const VehicleProfileDetail: React.FC<VehicleProfileDetailProps> = ({
         currentGpsId={vehicle.gpsDeviceId}
         onSuccess={loadData}
       />
+
+      {/* Lifecycle Status Change Modal */}
+      {isLifecycleModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 space-y-4 shadow-2xl">
+            <h3 className="text-base font-bold text-white border-b border-slate-800 pb-2 flex items-center gap-2">
+              <Layers className="h-5 w-5 text-cyan-400" />
+              Ubah Status Siklus Hidup Kendaraan
+            </h3>
+
+            <form onSubmit={handleLifecycleChangeSubmit} className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Status Siklus Hidup (Lifecycle)</label>
+                <select
+                  value={selectedLifecycle}
+                  onChange={(e) => setSelectedLifecycle(e.target.value as any)}
+                  className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-white"
+                >
+                  <option value="active">Active (Aktif Beroperasi)</option>
+                  <option value="inactive">Inactive (Standby / Tidak Aktif)</option>
+                  <option value="maintenance">Maintenance (Perbaikan Bengkel)</option>
+                  <option value="rental">Rental (Disewakan / Kontrak)</option>
+                  <option value="sold">Sold (Dijual ke Pihak Luar)</option>
+                  <option value="retired">Retired (Afkir / Decommissioned)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Alasan / Catatan Perubahan</label>
+                <textarea
+                  rows={3}
+                  value={lifecycleReason}
+                  onChange={(e) => setLifecycleReason(e.target.value)}
+                  placeholder="e.g. Unit dijadwalkan overhaul mesin 100.000 KM di workshop pusat."
+                  className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-white"
+                  required
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setIsLifecycleModalOpen(false)}
+                  className="rounded-xl border border-slate-800 bg-slate-950 px-4 py-2 text-xs font-semibold text-slate-300"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-xl bg-cyan-500 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-cyan-400"
+                >
+                  Simpan Perubahan Status
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Add Document Modal */}
       {isAddDocOpen && (

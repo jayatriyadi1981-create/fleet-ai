@@ -11,6 +11,7 @@ export type RealtimeTransportState = 'LIVE' | 'RECONNECTING' | 'OFFLINE';
 
 export interface LiveTrackingFilterState {
   searchQuery: string;
+  searchType?: 'ALL' | 'PLATE' | 'DRIVER' | 'LOCATION' | 'IMEI';
   status: 'ALL' | LiveVehicleStatus;
   group: string;
   branchId: string;
@@ -24,10 +25,12 @@ export interface LiveTrackingFilterState {
 export interface LiveVehicleCounters {
   total: number;
   moving: number;
-  stopped: number;
   idle: number;
+  parking: number;
   offline: number;
-  unknown: number;
+  emergency: number;
+  maintenance: number;
+  stopped: number;
   hasAlerts: number;
 }
 
@@ -47,10 +50,12 @@ export class LiveTrackingService {
   private transportState: RealtimeTransportState = 'LIVE';
   private followingVehicleId: string | null = null;
   private selectedVehicleId: string | null = null;
+  private multiSelectedVehicleIds: Set<string> = new Set();
   private auditLogs: AuditLogItem[] = [];
 
   private filterState: LiveTrackingFilterState = {
     searchQuery: '',
+    searchType: 'ALL',
     status: 'ALL',
     group: 'ALL',
     branchId: 'ALL',
@@ -67,10 +72,10 @@ export class LiveTrackingService {
   }
 
   /**
-   * Hydrate initial MapVehicle dataset from Prompt 9, 10, 11, 12 master models
+   * Hydrate initial MapVehicle dataset from master models with full telematics
    */
   private initializeMasterData(): void {
-    mockVehicles.forEach((v) => {
+    mockVehicles.forEach((v, idx) => {
       const driver = mockDrivers.find((d) => d.id === v.currentDriverId || d.assignedVehicleId === v.id);
       const gpsDevice = mockGpsDevices.find((g) => g.id === v.gpsDeviceId);
       const branch = mockBranches.find((b) => b.id === v.branchId);
@@ -78,54 +83,130 @@ export class LiveTrackingService {
 
       // Map vehicle status to LiveVehicleStatus
       let liveStatus: LiveVehicleStatus = 'Moving';
-      if (v.status === 'moving') liveStatus = 'Moving';
-      else if (v.status === 'parking' || v.status === 'maintenance') liveStatus = 'Stopped';
+      if (idx === 0) liveStatus = 'Moving';
+      else if (idx === 1) liveStatus = 'Idle';
+      else if (idx === 2) liveStatus = 'Parking';
+      else if (idx === 3) liveStatus = 'Emergency';
+      else if (idx === 4) liveStatus = 'Maintenance';
+      else if (idx === 5) liveStatus = 'Offline';
+      else if (v.status === 'moving') liveStatus = 'Moving';
       else if (v.status === 'idle') liveStatus = 'Idle';
+      else if (v.status === 'parking') liveStatus = 'Parking';
+      else if (v.status === 'maintenance') liveStatus = 'Maintenance';
       else if (v.status === 'offline') liveStatus = 'Offline';
-      else liveStatus = 'Unknown';
+      else liveStatus = 'Stopped';
+
+      const speed = liveStatus === 'Moving' ? (v.latestTelemetry?.location.speed || 58) : 0;
+      const heading = v.latestTelemetry?.location.heading || (idx * 45) % 360;
+      const cardinalDirection = this.calculateCardinal(heading);
+
+      // Group classification
+      let groupCat = 'Logistics & Cargo';
+      let isReefer = false;
+      if (v.type?.includes('reefer') || v.model?.toLowerCase().includes('cold') || idx === 1) {
+        groupCat = 'Cold Chain (Reefer)';
+        isReefer = true;
+      } else if (v.type?.includes('dump') || v.type?.includes('flatbed') || idx === 4) {
+        groupCat = 'Heavy Duty';
+      } else if (v.type?.includes('van') || v.type?.includes('passenger') || idx === 5) {
+        groupCat = 'Passenger & Shuttle';
+      } else if (idx === 3) {
+        groupCat = 'Hazardous Material';
+      }
+
+      const fuelPercent = v.latestTelemetry?.fuelLevelPercent || Math.max(25, 95 - idx * 12);
+      const tankCap = v.type?.includes('truck') ? 250 : 80;
+      const fuelLiters = Math.round((fuelPercent / 100) * tankCap);
+
+      const lat = v.latestTelemetry?.location.lat || (-6.200000 + (idx * 0.015 - 0.03));
+      const lng = v.latestTelemetry?.location.lng || (106.816666 + (idx * 0.018 - 0.025));
+
+      // Generate trail breadcrumbs
+      const trailHistory = Array.from({ length: 12 }).map((_, i) => ({
+        lat: lat - Math.cos((heading * Math.PI) / 180) * 0.0012 * (12 - i),
+        lng: lng - Math.sin((heading * Math.PI) / 180) * 0.0012 * (12 - i),
+        speed: Math.max(20, speed - (12 - i) * 2),
+        timestamp: new Date(Date.now() - (12 - i) * 60000).toISOString()
+      }));
 
       const mapVeh: MapVehicle = {
         vehicleId: v.id,
         vehiclePlate: v.plateNumber,
         vehicleName: `${v.brand} ${v.model}`,
+        vehicleModel: v.model,
         vehicleType: v.type,
+        groupCategory: groupCat,
         driverId: driver?.id,
-        driverName: driver?.name,
-        driverPhone: driver?.phone,
+        driverName: driver?.name || 'Driver Reguler',
+        driverPhone: driver?.phone || '+62 812-3456-7890',
         driverPhoto: driver?.photoUrl,
-        driverScore: driver?.score.overallScore,
-        latitude: v.latestTelemetry?.location.lat || -6.200000,
-        longitude: v.latestTelemetry?.location.lng || 106.816666,
-        speed: v.latestTelemetry?.location.speed || 0,
-        heading: v.latestTelemetry?.location.heading || 0,
+        driverScore: driver?.score.overallScore || 94,
+        driverLicense: 'BII Umum / Sim A',
+        latitude: lat,
+        longitude: lng,
+        speed: speed,
+        maxSpeedToday: Math.max(speed, 78),
+        heading: heading,
+        cardinalDirection: cardinalDirection,
         status: liveStatus,
-        ignition: v.latestTelemetry?.ignition ?? true,
-        gpsSignal: (v.latestTelemetry?.gpsSignal ?? 90) > 70 ? 'Excellent' : 'Good',
-        accuracy: 8,
-        lastSeenAt: v.latestTelemetry?.timestamp || new Date().toISOString(),
-        batteryVoltage: v.latestTelemetry?.batteryVoltage || 12.8,
-        externalVoltage: 24.2,
-        fuelLevelPercent: v.latestTelemetry?.fuelLevelPercent || 82,
-        odometerKm: v.odometerKm,
-        hasActiveAlert: !!activeAlert,
-        alertCategory: activeAlert?.category,
-        alertMessage: activeAlert?.message,
+        ignition: liveStatus === 'Moving' || liveStatus === 'Idle' || liveStatus === 'Emergency',
+        engineStatus: liveStatus === 'Moving' ? 'ON' : liveStatus === 'Idle' ? 'IDLE' : 'OFF',
+        engineRpm: liveStatus === 'Moving' ? 1850 : liveStatus === 'Idle' ? 750 : 0,
+        gpsSignal: liveStatus === 'Offline' ? 'No Fix' : 'Excellent',
+        satelliteCount: liveStatus === 'Offline' ? 0 : 14 + (idx % 5),
+        gnssLock: liveStatus === 'Offline' ? 'Signal Lost' : '3D Fixed / DGPS Dual-Band',
+        accuracy: liveStatus === 'Offline' ? 50 : 3.5,
+        lastSeenAt: liveStatus === 'Offline' ? new Date(Date.now() - 3600000).toISOString() : new Date().toISOString(),
+        batteryVoltage: 12.6 + (idx % 3) * 0.2,
+        externalVoltage: 24.4,
+        fuelLevelPercent: fuelPercent,
+        fuelLitersRemaining: fuelLiters,
+        fuelTankCapacity: tankCap,
+        fuelConsumptionRate: liveStatus === 'Moving' ? 26.4 : liveStatus === 'Idle' ? 1.8 : 0,
+        odometerKm: v.odometerKm || (112000 + idx * 8500),
+        tripKmToday: 86.4 + idx * 14.2,
+        cargoTemperature: isReefer ? -18.4 + (idx % 2) * 0.8 : null,
+        engineTemperature: liveStatus === 'Offline' ? 28.0 : 88.5,
+        address: v.latestTelemetry?.location.address || 'Kawasan Industri Pulogadung, Jakarta Timur',
+        hasActiveAlert: liveStatus === 'Emergency' || !!activeAlert,
+        alertCategory: liveStatus === 'Emergency' ? 'SOS / Panic Alarm' : activeAlert?.category,
+        alertMessage: liveStatus === 'Emergency' ? 'Peringatan Darurat: Tombol SOS Ditekan Driver!' : activeAlert?.message,
         branchId: v.branchId,
-        branchName: branch?.name || 'Cabang Utama',
-        groupName: v.groupName,
-        deviceId: gpsDevice?.id || 'GPS-DEV-001',
-        imei: gpsDevice?.imei || '864201048291001'
+        branchName: branch?.name || 'Hub Logistik Jabodetabek',
+        groupName: v.groupName || groupCat,
+        deviceId: gpsDevice?.id || `GPS-TRK-00${idx + 1}`,
+        imei: gpsDevice?.imei || `86420104829100${idx + 1}`,
+        activeRouteDestination: {
+          lat: lat + 0.035,
+          lng: lng + 0.045,
+          name: 'Pusat Distribusi Logistik Cikarang Dry Port',
+          etaMinutes: 38,
+          distanceRemainingKm: 28.4
+        },
+        trailHistory: trailHistory
       };
 
       this.vehiclesMap.set(v.id, mapVeh);
     });
   }
 
+  private calculateCardinal(heading: number): string {
+    const norm = ((heading % 360) + 360) % 360;
+    if (norm >= 337.5 || norm < 22.5) return 'Utara (N)';
+    if (norm >= 22.5 && norm < 67.5) return 'Timur Laut (NE)';
+    if (norm >= 67.5 && norm < 112.5) return 'Timur (E)';
+    if (norm >= 112.5 && norm < 157.5) return 'Tenggara (SE)';
+    if (norm >= 157.5 && norm < 202.5) return 'Selatan (S)';
+    if (norm >= 202.5 && norm < 247.5) return 'Barat Daya (SW)';
+    if (norm >= 247.5 && norm < 292.5) return 'Barat (W)';
+    return 'Barat Laut (NW)';
+  }
+
   /**
    * Start listening for real-time telemetry updates or simulated packets
    */
   private startRealtimeSimulation(): void {
-    // Listen to Prompt 12 GPS Simulator events
+    // Listen to GPS Simulator events
     gpsSimulator.subscribe((updatedVehicles) => {
       if (this.transportState !== 'LIVE') return;
 
@@ -134,7 +215,8 @@ export class LiveTrackingService {
         const vehicle = this.vehiclesMap.get(simVeh.id);
         if (vehicle && simVeh.latestTelemetry) {
           let newStatus: LiveVehicleStatus = 'Moving';
-          if (simVeh.status === 'parking' || simVeh.status === 'maintenance') newStatus = 'Stopped';
+          if (simVeh.status === 'parking') newStatus = 'Parking';
+          else if (simVeh.status === 'maintenance') newStatus = 'Maintenance';
           else if (simVeh.status === 'idle') newStatus = 'Idle';
           else if (simVeh.status === 'offline') newStatus = 'Offline';
 
@@ -144,6 +226,7 @@ export class LiveTrackingService {
             longitude: simVeh.latestTelemetry.location.lng,
             speed: simVeh.latestTelemetry.location.speed || 0,
             heading: simVeh.latestTelemetry.location.heading || vehicle.heading,
+            cardinalDirection: this.calculateCardinal(simVeh.latestTelemetry.location.heading || vehicle.heading),
             ignition: simVeh.latestTelemetry.ignition,
             status: newStatus,
             lastSeenAt: simVeh.latestTelemetry.timestamp,
@@ -168,22 +251,28 @@ export class LiveTrackingService {
       let changed = false;
       this.vehiclesMap.forEach((veh, id) => {
         if (veh.status === 'Moving' && veh.speed > 0) {
-          // Micro position shift based on speed & heading
-          const speedFactor = (veh.speed / 3600) * 0.01; // ~0.0001 deg per step
+          const speedFactor = (veh.speed / 3600) * 0.01;
           const rad = (veh.heading * Math.PI) / 180;
 
           const deltaLat = Math.cos(rad) * speedFactor;
           const deltaLng = Math.sin(rad) * speedFactor;
+          const newHeading = (veh.heading + (Math.random() * 4 - 2) + 360) % 360;
 
-          // Slightly drift heading for curved roads
-          const newHeading = (veh.heading + (Math.random() * 6 - 3) + 360) % 360;
+          // Update trail history
+          const trail = veh.trailHistory || [];
+          const newTrail = [
+            ...trail.slice(-14),
+            { lat: veh.latitude, lng: veh.longitude, speed: veh.speed, timestamp: new Date().toISOString() }
+          ];
 
           this.vehiclesMap.set(id, {
             ...veh,
             latitude: veh.latitude + deltaLat,
             longitude: veh.longitude + deltaLng,
             heading: Math.round(newHeading),
-            lastSeenAt: new Date().toISOString()
+            cardinalDirection: this.calculateCardinal(newHeading),
+            lastSeenAt: new Date().toISOString(),
+            trailHistory: newTrail
           });
           changed = true;
         }
@@ -193,6 +282,33 @@ export class LiveTrackingService {
         this.notifySubscribers();
       }
     }, 2000);
+  }
+
+  /**
+   * Multi-selection controls
+   */
+  public toggleVehicleSelection(vehicleId: string): void {
+    if (this.multiSelectedVehicleIds.has(vehicleId)) {
+      this.multiSelectedVehicleIds.delete(vehicleId);
+    } else {
+      this.multiSelectedVehicleIds.add(vehicleId);
+    }
+    this.notifySubscribers();
+  }
+
+  public selectAllFiltered(): void {
+    const filtered = this.getFilteredVehicles();
+    filtered.forEach((v) => this.multiSelectedVehicleIds.add(v.vehicleId));
+    this.notifySubscribers();
+  }
+
+  public clearMultiSelection(): void {
+    this.multiSelectedVehicleIds.clear();
+    this.notifySubscribers();
+  }
+
+  public getMultiSelectedVehicleIds(): string[] {
+    return Array.from(this.multiSelectedVehicleIds);
   }
 
   /**
@@ -239,9 +355,6 @@ export class LiveTrackingService {
     return { ...this.filterState };
   }
 
-  /**
-   * Get all MapVehicles or filtered MapVehicles
-   */
   public getAllVehicles(): MapVehicle[] {
     return Array.from(this.vehiclesMap.values());
   }
@@ -258,18 +371,39 @@ export class LiveTrackingService {
         const matchName = v.vehicleName.toLowerCase().includes(q);
         const matchId = v.vehicleId.toLowerCase().includes(q);
         const matchDriver = v.driverName ? v.driverName.toLowerCase().includes(q) : false;
-        const matchDriverId = v.driverId ? v.driverId.toLowerCase().includes(q) : false;
+        const matchDriverPhone = v.driverPhone ? v.driverPhone.toLowerCase().includes(q) : false;
         const matchImei = v.imei ? v.imei.toLowerCase().includes(q) : false;
-        if (!matchPlate && !matchName && !matchId && !matchDriver && !matchDriverId && !matchImei) {
-          return false;
+        const matchAddress = v.address ? v.address.toLowerCase().includes(q) : false;
+
+        if (f.searchType === 'PLATE') {
+          if (!matchPlate) return false;
+        } else if (f.searchType === 'DRIVER') {
+          if (!matchDriver && !matchDriverPhone) return false;
+        } else if (f.searchType === 'LOCATION') {
+          if (!matchAddress) return false;
+        } else if (f.searchType === 'IMEI') {
+          if (!matchImei && !matchId) return false;
+        } else {
+          if (!matchPlate && !matchName && !matchId && !matchDriver && !matchDriverPhone && !matchImei && !matchAddress) {
+            return false;
+          }
         }
       }
 
       // 2. Status Filter
-      if (f.status !== 'ALL' && v.status !== f.status) return false;
+      if (f.status !== 'ALL') {
+        if (f.status === 'Stopped' && (v.status === 'Stopped' || v.status === 'Parking')) {
+          // match stopped/parking
+        } else if (v.status !== f.status) {
+          return false;
+        }
+      }
 
       // 3. Group Filter
-      if (f.group !== 'ALL' && v.groupName !== f.group) return false;
+      if (f.group !== 'ALL') {
+        const matchesGroup = v.groupCategory === f.group || v.groupName === f.group;
+        if (!matchesGroup) return false;
+      }
 
       // 4. Branch Filter
       if (f.branchId !== 'ALL' && v.branchId !== f.branchId) return false;
@@ -310,11 +444,13 @@ export class LiveTrackingService {
     return {
       total: all.length,
       moving: all.filter((v) => v.status === 'Moving').length,
-      stopped: all.filter((v) => v.status === 'Stopped').length,
       idle: all.filter((v) => v.status === 'Idle').length,
+      parking: all.filter((v) => v.status === 'Parking' || v.status === 'Stopped').length,
       offline: all.filter((v) => v.status === 'Offline').length,
-      unknown: all.filter((v) => v.status === 'Unknown').length,
-      hasAlerts: all.filter((v) => v.hasActiveAlert).length
+      emergency: all.filter((v) => v.status === 'Emergency').length,
+      maintenance: all.filter((v) => v.status === 'Maintenance').length,
+      stopped: all.filter((v) => v.status === 'Stopped' || v.status === 'Parking').length,
+      hasAlerts: all.filter((v) => v.hasActiveAlert || v.status === 'Emergency').length
     };
   }
 
@@ -322,11 +458,11 @@ export class LiveTrackingService {
    * Calculate clusters dynamically based on zoom & viewport coordinates
    */
   public calculateClusters(zoom: number): VehicleClusterData[] {
-    if (zoom >= 13) return []; // Don't cluster when zoomed in
+    if (zoom >= 13) return [];
 
     const vehicles = this.getFilteredVehicles();
     const clusters: VehicleClusterData[] = [];
-    const gridSize = zoom <= 8 ? 1.5 : zoom <= 10 ? 0.8 : 0.3; // Grid step in deg
+    const gridSize = zoom <= 8 ? 1.5 : zoom <= 10 ? 0.8 : 0.3;
 
     const gridMap: Map<string, MapVehicle[]> = new Map();
 
@@ -447,3 +583,4 @@ export class LiveTrackingService {
 }
 
 export const liveTrackingService = new LiveTrackingService();
+

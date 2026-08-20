@@ -13,6 +13,7 @@ import {
   ExternalLink,
   Layers,
   Terminal,
+  Lock,
 } from 'lucide-react';
 import { APIKeyRecord, WebhookSubscription, WebhookDeliveryLog, ApiUsageRecord, ApiUsageMetrics } from '../../types/externalApi';
 import { apiKeyService } from '../../services/api/apiKeyService';
@@ -28,10 +29,14 @@ import { AnalyticsTab } from './tabs/AnalyticsTab';
 import { LiveLogsTab } from './tabs/LiveLogsTab';
 import { SandboxTab } from './tabs/SandboxTab';
 import { AutomatedTestsTab } from './tabs/AutomatedTestsTab';
+import { IntegrationTestingTab } from './tabs/IntegrationTestingTab';
+import { SecurityAuditTab } from './tabs/SecurityAuditTab';
+import { ProductionReadinessTab } from './tabs/ProductionReadinessTab';
+import { FinalMasterAuditTab } from './tabs/FinalMasterAuditTab';
 
 export const DeveloperPortalMainView: React.FC = () => {
   const { currentTenant } = useFleet();
-  const [activeTab, setActiveTab] = useState<string>('overview');
+  const [activeTab, setActiveTab] = useState<string>('master_audit');
 
   // State data
   const [apiKeys, setApiKeys] = useState<APIKeyRecord[]>([]);
@@ -53,6 +58,8 @@ export const DeveloperPortalMainView: React.FC = () => {
   }, [currentTenant.id]);
 
   const navTabs = [
+    { id: 'master_audit', label: 'Master System QA (PROMPT 60)', icon: ShieldCheck, badge: '100%' },
+    { id: 'production_readiness', label: 'Production Readiness & Health', icon: ShieldCheck, badge: 'PROD' },
     { id: 'overview', label: 'Overview & Quickstart', icon: Sparkles },
     { id: 'api_keys', label: 'API Keys', icon: KeyRound, badge: apiKeys.filter(k => k.status === 'ACTIVE').length },
     { id: 'api_explorer', label: 'API Explorer (OpenAPI 3.0)', icon: BookOpen },
@@ -60,7 +67,9 @@ export const DeveloperPortalMainView: React.FC = () => {
     { id: 'analytics', label: 'Usage & Quotas', icon: BarChart3 },
     { id: 'logs', label: 'Live Logs', icon: Radio },
     { id: 'sandbox', label: 'Sandbox (ERP Sim)', icon: Zap },
-    { id: 'tests', label: 'Acceptance Tests', icon: ShieldCheck },
+    { id: 'tests', label: 'API Unit Tests', icon: ShieldCheck },
+    { id: 'integration', label: 'Cross-Module Tests', icon: Layers },
+    { id: 'security', label: 'Security & Pen-Audit', icon: Lock },
   ];
 
   return (
@@ -128,6 +137,12 @@ export const DeveloperPortalMainView: React.FC = () => {
 
       {/* Tab Content Display */}
       <div>
+        {activeTab === 'master_audit' && (
+          <FinalMasterAuditTab />
+        )}
+        {activeTab === 'production_readiness' && (
+          <ProductionReadinessTab />
+        )}
         {activeTab === 'overview' && (
           <OverviewTab apiKeys={apiKeys} onNavigateTab={setActiveTab} />
         )}
@@ -155,6 +170,12 @@ export const DeveloperPortalMainView: React.FC = () => {
         )}
         {activeTab === 'tests' && (
           <AutomatedTestsTab />
+        )}
+        {activeTab === 'integration' && (
+          <IntegrationTestingTab />
+        )}
+        {activeTab === 'security' && (
+          <SecurityAuditTab />
         )}
       </div>
     </div>

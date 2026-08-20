@@ -30,6 +30,7 @@ import { CommandPalette } from './components/layout/CommandPalette';
 
 import { ExecutiveDashboard } from './components/dashboard/ExecutiveDashboard';
 import { ExecutiveDashboardView, ExecutivePrintView } from './modules/executive';
+import { ExecutiveReportDashboard } from './components/executive-report/ExecutiveReportDashboard';
 import { LiveTrackingView } from './components/live-tracking/LiveTrackingView';
 import { TelematicsMap } from './components/maps/TelematicsMap';
 import { VehiclesView } from './components/views/VehiclesView';
@@ -54,6 +55,7 @@ import { NotificationView } from './components/notifications/NotificationView';
 import { UserProfileView } from './components/pages/UserProfileView';
 import { GpsDevicesView } from './components/gps/GpsDevicesView';
 import { GPSIntegrationMainView } from './components/gps/integration/GPSIntegrationMainView';
+import { GpsServerDashboardView } from './components/gps-server/GpsServerDashboardView';
 import { RouteManagementView } from './components/views/RouteManagementView';
 import { GeofenceManagementView } from './components/views/GeofenceManagementView';
 import { DeliveryManagementView } from './components/views/DeliveryManagementView';
@@ -77,9 +79,12 @@ import { SubscriptionProvider } from './context/SubscriptionContext';
 import { SubscriptionMainView } from './components/subscription/SubscriptionMainView';
 import { SuperAdminMainView } from './components/super-admin/SuperAdminMainView';
 import { ImpersonationBanner } from './components/super-admin/ImpersonationBanner';
+import { NetworkStatusBanner } from './components/common/NetworkStatusBanner';
 import { DeveloperPortalMainView } from './components/developer/DeveloperPortalMainView';
+import { DailyBriefingView } from './components/daily-briefing/DailyBriefingView';
 import { AuditMainView } from './modules/audit/components/AuditMainView';
 import { SecurityCenterMainView } from './modules/security/components/SecurityCenterMainView';
+import { RentCarDashboard } from './components/rent-car/RentCarDashboard';
 import { superAdminService } from './services/superAdminService';
 import { ROUTE_METADATA_MAP } from './config/routeMetadata';
 import { useAuthorization } from './hooks/useAuthorization';
@@ -102,12 +107,15 @@ interface MainContentProps {
 }
 
 const MainContent: React.FC<MainContentProps> = ({ onNavigateSetup2FA }) => {
-  const { activeView } = useFleet();
+  const { activeView, setActiveView, currentTenant } = useFleet();
   const { can } = useAuthorization();
 
   // Map activeView to required permission
   const requiredPermissionsMap: Record<string, string> = {
+    daily_briefing: 'ai.view',
+    fleet_daily_briefing: 'ai.view',
     executive_dashboard: 'executive.dashboard.view',
+    executive_report: 'executive.dashboard.view',
     executive_print: 'executive.dashboard.export',
     dashboard: 'dashboard.view',
     live_tracking: 'tracking.view',
@@ -127,6 +135,11 @@ const MainContent: React.FC<MainContentProps> = ({ onNavigateSetup2FA }) => {
     planned_trips: 'trip.view',
     deliveries: 'trip.view',
     routes: 'trip.view',
+    rent_car: 'vehicle.view',
+    rent_car_bookings: 'vehicle.view',
+    rent_car_customers: 'vehicle.view',
+    rent_car_security: 'vehicle.view',
+    rent_car_tariffs: 'vehicle.view',
     fuel: 'fuel.view',
     maintenance: 'maintenance.view',
     cost_analytics: 'cost.view',
@@ -187,6 +200,8 @@ const MainContent: React.FC<MainContentProps> = ({ onNavigateSetup2FA }) => {
         return <CommandCenterMainView />;
       case 'executive_dashboard':
         return <ExecutiveDashboardView />;
+      case 'executive_report':
+        return <ExecutiveReportDashboard />;
       case 'executive_print':
         return <ExecutivePrintView />;
       case 'dashboard':
@@ -224,6 +239,30 @@ const MainContent: React.FC<MainContentProps> = ({ onNavigateSetup2FA }) => {
         return <TripHistoryView />;
       case 'routes':
         return <RouteManagementView />;
+      case 'rent_car':
+        return <RentCarDashboard initialSubTab="inventory" />;
+      case 'rent_car_bookings':
+        return <RentCarDashboard initialSubTab="bookings" />;
+      case 'rent_car_contracts':
+        return <RentCarDashboard initialSubTab="contracts" />;
+      case 'rent_car_calendar':
+        return <RentCarDashboard initialSubTab="calendar" />;
+      case 'rent_car_customers':
+        return <RentCarDashboard initialSubTab="customers" />;
+      case 'rent_car_damages':
+        return <RentCarDashboard initialSubTab="damages" />;
+      case 'rent_car_invoices':
+        return <RentCarDashboard initialSubTab="invoices" />;
+      case 'rent_car_security':
+        return <RentCarDashboard initialSubTab="security" />;
+      case 'rent_car_tariffs':
+        return <RentCarDashboard initialSubTab="tariff" />;
+      case 'rent_car_analytics':
+        return <RentCarDashboard initialSubTab="analytics" />;
+      case 'rent_car_ai':
+        return <RentCarDashboard initialSubTab="ai" />;
+      case 'rent_car_reports':
+        return <RentCarDashboard initialSubTab="reports" />;
       case 'fuel':
         return <FuelView />;
       case 'maintenance':
@@ -254,6 +293,16 @@ const MainContent: React.FC<MainContentProps> = ({ onNavigateSetup2FA }) => {
         return <AutomationMainView initialTab="failed" />;
       case 'automation_settings':
         return <AutomationMainView initialTab="settings" />;
+      case 'daily_briefing':
+      case 'fleet_daily_briefing':
+        return (
+          <DailyBriefingView
+            tenantId={currentTenant?.id || 'tenant-1'}
+            onNavigateToModule={(mod) => {
+              if (mod) setActiveView(mod as any);
+            }}
+          />
+        );
       case 'route_intelligence':
         return <RouteIntelligenceView />;
       case 'fleet_intelligence':
@@ -296,6 +345,9 @@ const MainContent: React.FC<MainContentProps> = ({ onNavigateSetup2FA }) => {
         return <UserProfileView />;
       case 'gps_integration':
         return <GPSIntegrationMainView />;
+      case 'gps_server':
+      case 'gps_server_dashboard':
+        return <GpsServerDashboardView />;
       case 'gps_devices':
       case 'gps_health':
       case 'gps_sims':
@@ -356,6 +408,7 @@ function AppShell({
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-slate-950 font-sans text-slate-100 antialiased selection:bg-cyan-500 selection:text-slate-950 flex-col">
+      <NetworkStatusBanner />
       {impersonationSession && (
         <ImpersonationBanner
           session={impersonationSession}

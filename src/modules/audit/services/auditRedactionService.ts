@@ -184,15 +184,31 @@ export class AuditRedactionService {
       .replace(/(\+?62|08)[0-9]{8,12}/g, '[REDACTED_PHONE]')
       .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '[REDACTED_EMAIL]');
   }
+  public static maskIp(ip?: string): string {
+    if (!ip || typeof ip !== 'string') return '';
+    const parts = ip.split('.');
+    if (parts.length === 4) {
+      return `${parts[0]}.${parts[1]}.*.*`;
+    }
+    return '[REDACTED_IP]';
+  }
+
+  public static maskToken(token?: string): string {
+    if (!token || typeof token !== 'string') return '';
+    if (token.length <= 8) return '****';
+    return `${token.slice(0, 4)}...${token.slice(-4)}`;
+  }
 }
 
 export const auditRedactionService = {
   maskEmail: AuditRedactionService.maskEmail,
   maskPhone: AuditRedactionService.maskPhone,
+  maskNationalId: AuditRedactionService.maskNationalId,
   maskIp: AuditRedactionService.maskIp,
   maskToken: AuditRedactionService.maskToken,
   maskString: AuditRedactionService.maskString,
   sanitizeData: AuditRedactionService.sanitizeData,
-  sanitizeObject: AuditRedactionService.sanitizeObject,
-  calculateSafeDiffs: AuditRedactionService.calculateSafeDiffs,
+  sanitizeObject: AuditRedactionService.sanitizeData,
+  calculateSafeDiffs: AuditRedactionService.calculateFieldDiff,
+  calculateFieldDiff: AuditRedactionService.calculateFieldDiff,
 };

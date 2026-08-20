@@ -47,6 +47,12 @@ export class MapService {
     this.provider.setSelectedMarker(vehicleId);
   }
 
+  public setSelectedMarkers(vehicleIds: string[]): void {
+    if (this.provider.setSelectedMarkers) {
+      this.provider.setSelectedMarkers(vehicleIds);
+    }
+  }
+
   public fitBounds(points: Array<[number, number]>): void {
     this.provider.fitBounds(points);
   }
@@ -59,8 +65,14 @@ export class MapService {
     this.provider.setTileStyle(style);
   }
 
-  public drawPolyline(id: string, coords: Array<[number, number]>, color?: string): void {
-    this.provider.drawPolyline(id, coords, color);
+  public toggleTraffic(enable: boolean): void {
+    if (this.provider.toggleTraffic) {
+      this.provider.toggleTraffic(enable);
+    }
+  }
+
+  public drawPolyline(id: string, coords: Array<[number, number]>, color?: string, dashed?: boolean): void {
+    this.provider.drawPolyline(id, coords, color, dashed);
   }
 
   public clearPolyline(id: string): void {
