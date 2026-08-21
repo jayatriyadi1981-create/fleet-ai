@@ -4,7 +4,9 @@
  */
 
 export type SystemRole =
+  // Core & Platform
   | 'super_admin'
+  | 'developer'
   | 'company_owner'
   | 'owner'
   | 'company_admin'
@@ -17,7 +19,41 @@ export type SystemRole =
   | 'maintenance'
   | 'finance'
   | 'hr'
-  | 'viewer';
+  | 'viewer'
+  // Rental Car Industry (Sewa & Rental Mobil)
+  | 'rent_car_manager'
+  | 'rental_officer'
+  | 'rental_technician'
+  // Logistics & Supply Chain Industry (TMS & Ekspedisi Kargo)
+  | 'logistics_manager'
+  | 'logistics_coordinator'
+  | 'sortation_officer'
+  | 'courier_driver'
+  // Bus & Public Transport Industry (PO Bus AKAP & Pariwisata)
+  | 'bus_operations_manager'
+  | 'bus_ticketing_agent'
+  | 'bus_crew_supervisor'
+  | 'bus_cargo_agent'
+  // Mining, Heavy Equipment & Construction Industry (Tambang & Alat Berat)
+  | 'heavy_equipment_manager'
+  | 'mining_fleet_officer'
+  // Safety, K3 & HSE Field
+  | 'safety_officer'
+  | 'hse_manager'
+  // IoT Hardware & Telematics Engineering
+  | 'telematics_engineer'
+  | 'iot_technician';
+
+export type IndustryCategory =
+  | 'ALL'
+  | 'CORE_MANAGEMENT'
+  | 'OPERATIONS_DISPATCH'
+  | 'RENT_CAR_INDUSTRY'
+  | 'LOGISTICS_SUPPLY_CHAIN'
+  | 'BUS_PASSENGER_TRANSPORT'
+  | 'MINING_HEAVY_EQUIPMENT'
+  | 'SAFETY_HSE'
+  | 'IOT_TELEMATICS_ENGINEERING';
 
 export type UserRole = SystemRole | string; // Supports custom roles
 
@@ -41,6 +77,7 @@ export type DepartmentId =
 export type MenuPermissionKey =
   | 'menu_command_center'
   | 'menu_executive_dashboard'
+  | 'menu_daily_briefing'
   | 'menu_live_tracking'
   | 'menu_fleet_vehicles'
   | 'menu_drivers'
@@ -52,6 +89,8 @@ export type MenuPermissionKey =
   | 'menu_safety_fatigue'
   | 'menu_inspection'
   | 'menu_rent_car'
+  | 'menu_logistics'
+  | 'menu_bus_management'
   | 'menu_cost_analytics'
   | 'menu_reports'
   | 'menu_analytics'
@@ -63,6 +102,7 @@ export type MenuPermissionKey =
   | 'menu_subscription'
   | 'menu_settings'
   | 'menu_gps_integration'
+  | 'menu_developer_portal'
   | 'menu_super_admin';
 
 export type ResourceModule =
@@ -80,8 +120,12 @@ export type ResourceModule =
   | 'geofence'
   | 'alert'
   | 'safety'
+  | 'fatigue'
   | 'inspection'
   | 'rent_car'
+  | 'logistics'
+  | 'bus'
+  | 'heavy_equipment'
   | 'fuel'
   | 'maintenance'
   | 'work_order'
@@ -94,6 +138,7 @@ export type ResourceModule =
   | 'permission'
   | 'company'
   | 'integration'
+  | 'developer'
   | 'notification'
   | 'audit_log'
   | 'settings'
@@ -139,6 +184,8 @@ export interface RoleDefinition {
   usersCount: number;
   permissions: string[]; // List of permission keys e.g. ['vehicle.view', 'vehicle.edit']
   granularScope?: GranularPermissionScope;
+  industryCategory?: IndustryCategory;
+  badgeColor?: string;
   createdAt: string;
   updatedAt: string;
 }

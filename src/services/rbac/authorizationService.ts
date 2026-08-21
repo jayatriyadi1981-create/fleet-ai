@@ -13,8 +13,8 @@ export class AuthorizationService {
   public hasPermission(user: UserProfile | null, permissionKey: string): boolean {
     if (!user) return false;
 
-    // Super Admin & Company Admin always have full administrative permissions
-    if (user.role === 'super_admin' || user.role === 'company_admin') {
+    // Super Admin, Developer & Company Admin always have full administrative permissions across all modules
+    if (user.role === 'super_admin' || user.role === 'developer' || user.role === 'company_admin') {
       return true;
     }
 
@@ -66,7 +66,7 @@ export class AuthorizationService {
    */
   public hasRole(user: UserProfile | null, roleId: UserRole): boolean {
     if (!user) return false;
-    if (user.role === 'super_admin') return true; // Super admin matches any role requirement
+    if (user.role === 'super_admin' || user.role === 'developer') return true; // Super admin & developer match any role requirement
     return user.role === roleId;
   }
 
@@ -75,7 +75,7 @@ export class AuthorizationService {
    */
   public hasAnyRole(user: UserProfile | null, roleIds: UserRole[]): boolean {
     if (!user) return false;
-    if (user.role === 'super_admin') return true;
+    if (user.role === 'super_admin' || user.role === 'developer') return true;
     return roleIds.includes(user.role);
   }
 
@@ -113,8 +113,8 @@ export class AuthorizationService {
   ): boolean {
     if (!user) return false;
 
-    // Super Admin sees all tenant data
-    if (user.role === 'super_admin') return true;
+    // Super Admin & Developer see all tenant data
+    if (user.role === 'super_admin' || user.role === 'developer') return true;
 
     // 1. Tenant Isolation Check
     if (record.tenantId && record.tenantId !== user.tenantId) {

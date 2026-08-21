@@ -85,6 +85,16 @@ import { DailyBriefingView } from './components/daily-briefing/DailyBriefingView
 import { AuditMainView } from './modules/audit/components/AuditMainView';
 import { SecurityCenterMainView } from './modules/security/components/SecurityCenterMainView';
 import { RentCarDashboard } from './components/rent-car/RentCarDashboard';
+import { LogisticsManagementView } from './components/views/LogisticsManagementView';
+import { BusManagementView } from './components/views/BusManagementView';
+import { HeavyEquipmentManagementView } from './components/views/HeavyEquipmentManagementView';
+import { MiningManagementView } from './components/mining/MiningManagementView';
+import { PudManagementView } from './components/views/PudManagementView';
+import { DtmsManagementView } from './components/views/DtmsManagementView';
+import { TaxiManagementView } from './components/views/TaxiManagementView';
+import { TankerManagementView } from './components/views/TankerManagementView';
+import { WasteManagementView } from './components/views/WasteManagementView';
+import { SecuricorManagementView } from './components/views/SecuricorManagementView';
 import { superAdminService } from './services/superAdminService';
 import { ROUTE_METADATA_MAP } from './config/routeMetadata';
 import { useAuthorization } from './hooks/useAuthorization';
@@ -140,6 +150,161 @@ const MainContent: React.FC<MainContentProps> = ({ onNavigateSetup2FA }) => {
     rent_car_customers: 'vehicle.view',
     rent_car_security: 'vehicle.view',
     rent_car_tariffs: 'vehicle.view',
+    logistics: 'trip.view',
+    logistics_control_tower: 'trip.view',
+    logistics_orders: 'trip.view',
+    logistics_shipments: 'trip.view',
+    logistics_pickups: 'trip.view',
+    logistics_deliveries: 'trip.view',
+    logistics_manifests: 'trip.view',
+    logistics_packages: 'trip.view',
+    logistics_routes: 'route.view',
+    logistics_live_tracking: 'tracking.view',
+    logistics_hubs: 'vehicle.view',
+    logistics_sortation: 'trip.view',
+    logistics_returns: 'trip.view',
+    logistics_exceptions: 'alert.view',
+    logistics_cod: 'cost.view',
+    logistics_customers: 'driver.view',
+    logistics_sla: 'analytics.view',
+    logistics_analytics: 'cost.view',
+    logistics_ai: 'ai.view',
+    logistics_reports: 'report.view',
+    bus_management: 'trip.view',
+    bus_control_tower: 'trip.view',
+    bus_trips_schedule: 'trip.view',
+    bus_ticketing_seat: 'trip.view',
+    bus_passenger_manifest: 'trip.view',
+    bus_routes_terminals: 'route.view',
+    bus_cargo_express: 'trip.view',
+    bus_agents_counter: 'trip.view',
+    bus_crew_roster: 'driver.view',
+    bus_ramp_check: 'inspection.view',
+    bus_ujs_toll_fuel: 'cost.view',
+    bus_live_tracking: 'tracking.view',
+    bus_charter_tour: 'trip.view',
+    bus_occupancy_analytics: 'analytics.view',
+    bus_ai_dispatcher: 'ai.view',
+    bus_reports: 'report.view',
+    heavy_equipment: 'trip.view',
+    heavy_equipment_control_tower: 'trip.view',
+    heavy_equipment_assets: 'vehicle.view',
+    heavy_equipment_projects: 'trip.view',
+    heavy_equipment_timesheets: 'trip.view',
+    heavy_equipment_p2h: 'inspection.view',
+    heavy_equipment_fuel: 'fuel.view',
+    heavy_equipment_maintenance: 'maintenance.view',
+    heavy_equipment_safety: 'safety.view',
+    heavy_equipment_billing: 'cost.view',
+    heavy_equipment_ai: 'ai.view',
+    heavy_equipment_reports: 'report.view',
+    mining: 'trip.view',
+    mining_control_tower: 'trip.view',
+    mining_sites: 'vehicle.view',
+    mining_pits: 'trip.view',
+    mining_benches: 'trip.view',
+    mining_materials: 'vehicle.view',
+    mining_equipment: 'vehicle.view',
+    mining_operators: 'driver.view',
+    mining_shifts: 'trip.view',
+    mining_dispatch: 'trip.view',
+    mining_weighbridge: 'trip.view',
+    mining_fuel: 'fuel.view',
+    mining_safety: 'safety.view',
+    mining_maintenance: 'maintenance.view',
+    mining_productivity: 'cost.view',
+    mining_ai: 'ai.view',
+    mining_reports: 'report.view',
+    pud: 'trip.view',
+    pud_control_tower: 'trip.view',
+    pud_pickups: 'trip.view',
+    pud_deliveries: 'trip.view',
+    pud_dispatch: 'trip.view',
+    pud_epod: 'trip.view',
+    pud_live_couriers: 'tracking.view',
+    pud_route_optimizer: 'route.view',
+    pud_failed_undelivered: 'alert.view',
+    pud_cod: 'cost.view',
+    pud_tracking_link: 'trip.view',
+    pud_couriers: 'driver.view',
+    pud_tariffs: 'cost.view',
+    pud_ai_copilot: 'ai.view',
+    pud_reports: 'report.view',
+    dtms: 'trip.view',
+    dtms_control_tower: 'trip.view',
+    dtms_fleets: 'vehicle.view',
+    dtms_cycles: 'trip.view',
+    dtms_payload: 'trip.view',
+    dtms_haul_roads: 'route.view',
+    dtms_dispatch: 'trip.view',
+    dtms_fuel: 'fuel.view',
+    dtms_tires: 'maintenance.view',
+    dtms_telematics: 'tracking.view',
+    dtms_drivers: 'driver.view',
+    dtms_safety: 'safety.view',
+    dtms_maintenance: 'maintenance.view',
+    dtms_billing: 'cost.view',
+    dtms_ai: 'ai.view',
+    dtms_reports: 'report.view',
+    taxi: 'trip.view',
+    taxi_control_tower: 'trip.view',
+    taxi_fleets: 'vehicle.view',
+    taxi_taximeter: 'cost.view',
+    taxi_orders: 'trip.view',
+    taxi_revenue: 'cost.view',
+    taxi_pools: 'trip.view',
+    taxi_energy: 'fuel.view',
+    taxi_drivers: 'driver.view',
+    taxi_safety: 'safety.view',
+    taxi_maintenance: 'maintenance.view',
+    taxi_lost_found: 'trip.view',
+    taxi_cashless: 'cost.view',
+    taxi_ai_copilot: 'ai.view',
+    taxi_reports: 'report.view',
+    tanker: 'trip.view',
+    tanker_control_tower: 'trip.view',
+    tanker_fleets: 'vehicle.view',
+    tanker_compartments: 'vehicle.view',
+    tanker_elocks: 'safety.view',
+    tanker_loading_orders: 'trip.view',
+    tanker_unloading: 'trip.view',
+    tanker_geofences: 'safety.view',
+    tanker_safety_hazmat: 'safety.view',
+    tanker_cleaning: 'maintenance.view',
+    tanker_drivers: 'driver.view',
+    tanker_maintenance: 'maintenance.view',
+    tanker_billing: 'cost.view',
+    tanker_ai_copilot: 'ai.view',
+    tanker_reports: 'report.view',
+    waste: 'trip.view',
+    waste_control_tower: 'trip.view',
+    waste_fleets: 'vehicle.view',
+    waste_routes: 'route.view',
+    waste_manifest_festronik: 'trip.view',
+    waste_weighbridge: 'trip.view',
+    waste_containers: 'vehicle.view',
+    waste_medical_biohazard: 'safety.view',
+    waste_sludge_vacuum: 'trip.view',
+    waste_safety_compliance: 'safety.view',
+    waste_crews: 'driver.view',
+    waste_maintenance: 'maintenance.view',
+    waste_billing: 'cost.view',
+    waste_ai_copilot: 'ai.view',
+    waste_reports: 'report.view',
+    securicor: 'trip.view',
+    securicor_control_tower: 'trip.view',
+    securicor_armored_fleets: 'vehicle.view',
+    securicor_cit_missions: 'trip.view',
+    securicor_smart_vault: 'trip.view',
+    securicor_atm_replenishment: 'trip.view',
+    securicor_patrol_guards: 'safety.view',
+    securicor_duress_emergency: 'safety.view',
+    securicor_armed_officers: 'driver.view',
+    securicor_geofence_corridors: 'route.view',
+    securicor_armor_maintenance: 'maintenance.view',
+    securicor_insurance_billing: 'cost.view',
+    securicor_ai_copilot: 'ai.view',
+    securicor_reports: 'report.view',
     fuel: 'fuel.view',
     maintenance: 'maintenance.view',
     cost_analytics: 'cost.view',
@@ -263,6 +428,307 @@ const MainContent: React.FC<MainContentProps> = ({ onNavigateSetup2FA }) => {
         return <RentCarDashboard initialSubTab="ai" />;
       case 'rent_car_reports':
         return <RentCarDashboard initialSubTab="reports" />;
+      case 'logistics':
+      case 'logistics_control_tower':
+        return <LogisticsManagementView initialTab="control-tower" />;
+      case 'logistics_orders':
+        return <LogisticsManagementView initialTab="orders" />;
+      case 'logistics_shipments':
+        return <LogisticsManagementView initialTab="shipments" />;
+      case 'logistics_pickups':
+        return <LogisticsManagementView initialTab="pickups" />;
+      case 'logistics_deliveries':
+        return <LogisticsManagementView initialTab="deliveries" />;
+      case 'logistics_manifests':
+        return <LogisticsManagementView initialTab="manifests" />;
+      case 'logistics_packages':
+        return <LogisticsManagementView initialTab="packages" />;
+      case 'logistics_routes':
+        return <LogisticsManagementView initialTab="routes" />;
+      case 'logistics_live_tracking':
+        return <LogisticsManagementView initialTab="live-tracking" />;
+      case 'logistics_hubs':
+        return <LogisticsManagementView initialTab="hubs" />;
+      case 'logistics_sortation':
+        return <LogisticsManagementView initialTab="sortation" />;
+      case 'logistics_returns':
+        return <LogisticsManagementView initialTab="returns" />;
+      case 'logistics_exceptions':
+        return <LogisticsManagementView initialTab="exceptions" />;
+      case 'logistics_cod':
+        return <LogisticsManagementView initialTab="cod" />;
+      case 'logistics_customers':
+        return <LogisticsManagementView initialTab="customers" />;
+      case 'logistics_sla':
+        return <LogisticsManagementView initialTab="sla" />;
+      case 'logistics_analytics':
+        return <LogisticsManagementView initialTab="analytics" />;
+      case 'logistics_ai':
+        return <LogisticsManagementView initialTab="ai-dispatcher" />;
+      case 'logistics_reports':
+        return <LogisticsManagementView initialTab="reports" />;
+      case 'bus_management':
+        return <BusManagementView initialTab="control-tower" />;
+      case 'bus_control_tower':
+        return <BusManagementView initialTab="control-tower" />;
+      case 'bus_trips_schedule':
+        return <BusManagementView initialTab="trips-schedule" />;
+      case 'bus_ticketing_seat':
+        return <BusManagementView initialTab="ticketing-seat" />;
+      case 'bus_passenger_manifest':
+        return <BusManagementView initialTab="passenger-manifest" />;
+      case 'bus_routes_terminals':
+        return <BusManagementView initialTab="routes-terminals" />;
+      case 'bus_cargo_express':
+        return <BusManagementView initialTab="cargo-express" />;
+      case 'bus_agents_counter':
+        return <BusManagementView initialTab="agents-counter" />;
+      case 'bus_crew_roster':
+        return <BusManagementView initialTab="crew-roster" />;
+      case 'bus_ramp_check':
+        return <BusManagementView initialTab="ramp-check" />;
+      case 'bus_ujs_toll_fuel':
+        return <BusManagementView initialTab="ujs-toll-fuel" />;
+      case 'bus_live_tracking':
+        return <BusManagementView initialTab="live-tracking" />;
+      case 'bus_charter_tour':
+        return <BusManagementView initialTab="charter-tour" />;
+      case 'bus_occupancy_analytics':
+        return <BusManagementView initialTab="occupancy-analytics" />;
+      case 'bus_ai_dispatcher':
+        return <BusManagementView initialTab="ai-dispatcher" />;
+      case 'bus_reports':
+        return <BusManagementView initialTab="reports" />;
+      case 'heavy_equipment':
+      case 'heavy_equipment_control_tower':
+        return <HeavyEquipmentManagementView initialTab="control-tower" />;
+      case 'heavy_equipment_assets':
+        return <HeavyEquipmentManagementView initialTab="equipment-assets" />;
+      case 'heavy_equipment_projects':
+        return <HeavyEquipmentManagementView initialTab="projects-sites" />;
+      case 'heavy_equipment_timesheets':
+        return <HeavyEquipmentManagementView initialTab="timesheets-hm" />;
+      case 'heavy_equipment_p2h':
+        return <HeavyEquipmentManagementView initialTab="p2h-inspection" />;
+      case 'heavy_equipment_fuel':
+        return <HeavyEquipmentManagementView initialTab="fuel-bowser" />;
+      case 'heavy_equipment_maintenance':
+        return <HeavyEquipmentManagementView initialTab="maintenance-ps" />;
+      case 'heavy_equipment_safety':
+        return <HeavyEquipmentManagementView initialTab="safety-sio" />;
+      case 'heavy_equipment_billing':
+        return <HeavyEquipmentManagementView initialTab="rental-billing" />;
+      case 'heavy_equipment_ai':
+        return <HeavyEquipmentManagementView initialTab="ai-copilot" />;
+      case 'heavy_equipment_reports':
+        return <HeavyEquipmentManagementView initialTab="reports" />;
+      case 'mining':
+      case 'mining_control_tower':
+        return <MiningManagementView initialTab="dashboard" />;
+      case 'mining_sites':
+        return <MiningManagementView initialTab="sites" />;
+      case 'mining_pits':
+        return <MiningManagementView initialTab="pits" />;
+      case 'mining_benches':
+        return <MiningManagementView initialTab="benches" />;
+      case 'mining_materials':
+        return <MiningManagementView initialTab="materials" />;
+      case 'mining_equipment':
+        return <MiningManagementView initialTab="equipment" />;
+      case 'mining_operators':
+        return <MiningManagementView initialTab="operators" />;
+      case 'mining_shifts':
+        return <MiningManagementView initialTab="shifts" />;
+      case 'mining_dispatch':
+        return <MiningManagementView initialTab="dispatch" />;
+      case 'mining_weighbridge':
+        return <MiningManagementView initialTab="weighbridge" />;
+      case 'mining_fuel':
+        return <MiningManagementView initialTab="fuel" />;
+      case 'mining_safety':
+        return <MiningManagementView initialTab="safety" />;
+      case 'mining_maintenance':
+        return <MiningManagementView initialTab="maintenance" />;
+      case 'mining_productivity':
+        return <MiningManagementView initialTab="productivity" />;
+      case 'mining_ai':
+        return <MiningManagementView initialTab="ai_copilot" />;
+      case 'mining_reports':
+        return <MiningManagementView initialTab="reports" />;
+      case 'pud':
+      case 'pud_control_tower':
+        return <PudManagementView initialTab="control_tower" />;
+      case 'pud_pickups':
+        return <PudManagementView initialTab="pickups" />;
+      case 'pud_deliveries':
+        return <PudManagementView initialTab="deliveries" />;
+      case 'pud_dispatch':
+        return <PudManagementView initialTab="dispatch" />;
+      case 'pud_epod':
+        return <PudManagementView initialTab="epod" />;
+      case 'pud_live_couriers':
+        return <PudManagementView initialTab="live_couriers" />;
+      case 'pud_route_optimizer':
+        return <PudManagementView initialTab="route_optimizer" />;
+      case 'pud_failed_undelivered':
+        return <PudManagementView initialTab="failed_undelivered" />;
+      case 'pud_cod':
+        return <PudManagementView initialTab="cod" />;
+      case 'pud_tracking_link':
+        return <PudManagementView initialTab="tracking_link" />;
+      case 'pud_couriers':
+        return <PudManagementView initialTab="couriers" />;
+      case 'pud_tariffs':
+        return <PudManagementView initialTab="tariffs" />;
+      case 'pud_ai_copilot':
+        return <PudManagementView initialTab="ai_copilot" />;
+      case 'pud_reports':
+        return <PudManagementView initialTab="reports" />;
+      case 'dtms':
+      case 'dtms_control_tower':
+        return <DtmsManagementView initialTab="control_tower" />;
+      case 'dtms_fleets':
+        return <DtmsManagementView initialTab="fleets" />;
+      case 'dtms_cycles':
+        return <DtmsManagementView initialTab="cycles" />;
+      case 'dtms_payload':
+        return <DtmsManagementView initialTab="payload" />;
+      case 'dtms_haul_roads':
+        return <DtmsManagementView initialTab="haul_roads" />;
+      case 'dtms_dispatch':
+        return <DtmsManagementView initialTab="dispatch" />;
+      case 'dtms_fuel':
+        return <DtmsManagementView initialTab="fuel" />;
+      case 'dtms_tires':
+        return <DtmsManagementView initialTab="tires" />;
+      case 'dtms_telematics':
+        return <DtmsManagementView initialTab="telematics" />;
+      case 'dtms_drivers':
+        return <DtmsManagementView initialTab="drivers" />;
+      case 'dtms_safety':
+        return <DtmsManagementView initialTab="safety" />;
+      case 'dtms_maintenance':
+        return <DtmsManagementView initialTab="maintenance" />;
+      case 'dtms_billing':
+        return <DtmsManagementView initialTab="billing" />;
+      case 'dtms_ai':
+        return <DtmsManagementView initialTab="ai_copilot" />;
+      case 'dtms_reports':
+        return <DtmsManagementView initialTab="reports" />;
+      case 'taxi':
+      case 'taxi_control_tower':
+        return <TaxiManagementView initialTab="control_tower" />;
+      case 'taxi_fleets':
+        return <TaxiManagementView initialTab="fleets" />;
+      case 'taxi_taximeter':
+        return <TaxiManagementView initialTab="taximeter" />;
+      case 'taxi_orders':
+        return <TaxiManagementView initialTab="orders" />;
+      case 'taxi_revenue':
+        return <TaxiManagementView initialTab="revenue" />;
+      case 'taxi_pools':
+        return <TaxiManagementView initialTab="pools" />;
+      case 'taxi_energy':
+        return <TaxiManagementView initialTab="energy" />;
+      case 'taxi_drivers':
+        return <TaxiManagementView initialTab="drivers" />;
+      case 'taxi_safety':
+        return <TaxiManagementView initialTab="safety" />;
+      case 'taxi_maintenance':
+        return <TaxiManagementView initialTab="maintenance" />;
+      case 'taxi_lost_found':
+        return <TaxiManagementView initialTab="lost_found" />;
+      case 'taxi_cashless':
+        return <TaxiManagementView initialTab="cashless" />;
+      case 'taxi_ai_copilot':
+        return <TaxiManagementView initialTab="ai_copilot" />;
+      case 'taxi_reports':
+        return <TaxiManagementView initialTab="reports" />;
+      case 'tanker':
+      case 'tanker_control_tower':
+        return <TankerManagementView initialTab="control_tower" />;
+      case 'tanker_fleets':
+        return <TankerManagementView initialTab="fleets" />;
+      case 'tanker_compartments':
+        return <TankerManagementView initialTab="compartments" />;
+      case 'tanker_elocks':
+        return <TankerManagementView initialTab="elocks" />;
+      case 'tanker_loading_orders':
+        return <TankerManagementView initialTab="loading_orders" />;
+      case 'tanker_unloading':
+        return <TankerManagementView initialTab="unloading" />;
+      case 'tanker_geofences':
+        return <TankerManagementView initialTab="geofences" />;
+      case 'tanker_safety_hazmat':
+        return <TankerManagementView initialTab="safety_hazmat" />;
+      case 'tanker_cleaning':
+        return <TankerManagementView initialTab="cleaning" />;
+      case 'tanker_drivers':
+        return <TankerManagementView initialTab="drivers" />;
+      case 'tanker_maintenance':
+        return <TankerManagementView initialTab="maintenance" />;
+      case 'tanker_billing':
+        return <TankerManagementView initialTab="billing" />;
+      case 'tanker_ai_copilot':
+        return <TankerManagementView initialTab="ai_copilot" />;
+      case 'tanker_reports':
+        return <TankerManagementView initialTab="reports" />;
+      case 'waste':
+      case 'waste_control_tower':
+        return <WasteManagementView initialTab="control_tower" />;
+      case 'waste_fleets':
+        return <WasteManagementView initialTab="fleets" />;
+      case 'waste_routes':
+        return <WasteManagementView initialTab="routes" />;
+      case 'waste_manifest_festronik':
+        return <WasteManagementView initialTab="manifest_festronik" />;
+      case 'waste_weighbridge':
+        return <WasteManagementView initialTab="weighbridge" />;
+      case 'waste_containers':
+        return <WasteManagementView initialTab="containers" />;
+      case 'waste_medical_biohazard':
+        return <WasteManagementView initialTab="medical_biohazard" />;
+      case 'waste_sludge_vacuum':
+        return <WasteManagementView initialTab="sludge_vacuum" />;
+      case 'waste_safety_compliance':
+        return <WasteManagementView initialTab="safety_compliance" />;
+      case 'waste_crews':
+        return <WasteManagementView initialTab="crews" />;
+      case 'waste_maintenance':
+        return <WasteManagementView initialTab="maintenance" />;
+      case 'waste_billing':
+        return <WasteManagementView initialTab="billing" />;
+      case 'waste_ai_copilot':
+        return <WasteManagementView initialTab="ai_copilot" />;
+      case 'waste_reports':
+        return <WasteManagementView initialTab="reports" />;
+      case 'securicor':
+      case 'securicor_control_tower':
+        return <SecuricorManagementView initialTab="control_tower" />;
+      case 'securicor_armored_fleets':
+        return <SecuricorManagementView initialTab="armored_fleets" />;
+      case 'securicor_cit_missions':
+        return <SecuricorManagementView initialTab="cit_missions" />;
+      case 'securicor_smart_vault':
+        return <SecuricorManagementView initialTab="smart_vault" />;
+      case 'securicor_atm_replenishment':
+        return <SecuricorManagementView initialTab="atm_replenishment" />;
+      case 'securicor_patrol_guards':
+        return <SecuricorManagementView initialTab="patrol_guards" />;
+      case 'securicor_duress_emergency':
+        return <SecuricorManagementView initialTab="duress_emergency" />;
+      case 'securicor_armed_officers':
+        return <SecuricorManagementView initialTab="armed_officers" />;
+      case 'securicor_geofence_corridors':
+        return <SecuricorManagementView initialTab="geofence_corridors" />;
+      case 'securicor_armor_maintenance':
+        return <SecuricorManagementView initialTab="armor_maintenance" />;
+      case 'securicor_insurance_billing':
+        return <SecuricorManagementView initialTab="insurance_billing" />;
+      case 'securicor_ai_copilot':
+        return <SecuricorManagementView initialTab="ai_copilot" />;
+      case 'securicor_reports':
+        return <SecuricorManagementView initialTab="reports" />;
       case 'fuel':
         return <FuelView />;
       case 'maintenance':

@@ -47,6 +47,7 @@ export const RoleManagementView: React.FC = () => {
   // Permission Search Filter
   const [permissionSearch, setPermissionSearch] = useState('');
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('ALL');
+  const [selectedIndustryFilter, setSelectedIndustryFilter] = useState<string>('ALL');
 
   // Matrix Editing State
   const selectedRole = useMemo(() => {
@@ -55,6 +56,12 @@ export const RoleManagementView: React.FC = () => {
 
   const [draftPermissions, setDraftPermissions] = useState<string[]>(() => selectedRole?.permissions || []);
   const [isSaved, setIsSaved] = useState(false);
+
+  // Filtered Roles by Industry
+  const filteredRoles = useMemo(() => {
+    if (selectedIndustryFilter === 'ALL') return roles;
+    return roles.filter((r) => r.industryCategory === selectedIndustryFilter);
+  }, [roles, selectedIndustryFilter]);
 
   // Modals
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -260,27 +267,64 @@ export const RoleManagementView: React.FC = () => {
         </div>
 
         {/* DEMO ROLE SWITCHER BAR FOR INTERACTIVE TESTING */}
-        <div className="mt-5 pt-4 border-t border-slate-800/80">
-          <div className="flex items-center justify-between text-xs mb-2">
-            <span className="font-bold text-slate-300 flex items-center gap-1.5">
-              <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-              Demo Interactive Role Tester (Uji Coba Langsung 9 Role):
+        <div className="mt-5 pt-4 border-t border-slate-800/80 space-y-2.5">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs">
+            <span className="font-bold text-slate-200 flex items-center gap-1.5">
+              <Sparkles className="h-4 w-4 text-amber-400" />
+              Demo Interactive Role Tester (Uji Coba Langsung Multi-Industri & Developer):
             </span>
-            <span className="text-slate-400 font-mono">
-              Peran Aktif: <strong className="text-cyan-400">{user?.role}</strong>
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-slate-400 font-mono">
+                Peran Aktif:
+              </span>
+              <span className={`px-2 py-0.5 rounded text-xs font-mono font-bold border ${
+                user?.role === 'developer'
+                  ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300 animate-pulse'
+                  : 'bg-cyan-500/20 border-cyan-500/40 text-cyan-300'
+              }`}>
+                {user?.role}
+              </span>
+            </div>
           </div>
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+
+          {/* Quick Category-Grouped Switcher */}
+          <div className="flex flex-wrap items-center gap-1.5 max-h-36 overflow-y-auto p-1 bg-slate-950/60 rounded-xl border border-slate-800/60">
+            {/* Special Highlight for Developer Role */}
+            <button
+              onClick={() => handleSwitchDemoUserRole('developer')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap border flex items-center gap-1.5 ${
+                user?.role === 'developer'
+                  ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-lg shadow-emerald-950/50'
+                  : 'bg-emerald-950/40 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20'
+              }`}
+              title="Developer memiliki hak akses penuh ke seluruh menu, modul, telematika, dan sistem"
+            >
+              <Key className="h-3.5 w-3.5" />
+              Developer (Full Access - All Menus)
+            </button>
+
             {[
-              { id: 'super_admin', label: 'Super Admin' },
-              { id: 'company_admin', label: 'Company Admin' },
-              { id: 'fleet_manager', label: 'Fleet Manager' },
-              { id: 'operations', label: 'Operations' },
-              { id: 'dispatcher', label: 'Dispatcher' },
-              { id: 'driver', label: 'Driver' },
-              { id: 'maintenance', label: 'Maintenance' },
-              { id: 'finance', label: 'Finance' },
-              { id: 'viewer', label: 'Viewer' },
+              { id: 'super_admin', label: 'Super Admin', category: 'Core' },
+              { id: 'company_admin', label: 'Company Admin', category: 'Core' },
+              { id: 'fleet_manager', label: 'Fleet Manager', category: 'Armada' },
+              { id: 'operations_manager', label: 'Operations Mgr', category: 'Ops' },
+              { id: 'dispatcher', label: 'Dispatcher', category: 'Ops' },
+              { id: 'driver', label: 'Driver', category: 'Ops' },
+              { id: 'maintenance', label: 'Maintenance', category: 'Bengkel' },
+              { id: 'finance', label: 'Finance & TCO', category: 'Finansial' },
+              { id: 'rent_car_manager', label: 'Rent Car Manager', category: 'Rental' },
+              { id: 'rental_officer', label: 'Rental Front Desk', category: 'Rental' },
+              { id: 'logistics_manager', label: 'Logistics TMS Mgr', category: 'Logistik' },
+              { id: 'logistics_coordinator', label: 'Delivery Coord', category: 'Logistik' },
+              { id: 'courier_driver', label: 'Courier Driver', category: 'Logistik' },
+              { id: 'bus_operations_manager', label: 'PO Bus Manager', category: 'Bus' },
+              { id: 'bus_ticketing_agent', label: 'Bus Ticketing', category: 'Bus' },
+              { id: 'heavy_equipment_manager', label: 'Mining Alat Berat', category: 'Tambang' },
+              { id: 'mining_fleet_officer', label: 'Pit / Hauling Dispatcher', category: 'Tambang' },
+              { id: 'safety_officer', label: 'Safety & HSE Officer', category: 'K3' },
+              { id: 'hse_manager', label: 'HSE Manager', category: 'K3' },
+              { id: 'telematics_engineer', label: 'Telematics IoT Eng', category: 'IoT' },
+              { id: 'viewer', label: 'Viewer (Read Only)', category: 'Audit' },
             ].map((roleItem) => (
               <button
                 key={roleItem.id}
@@ -288,9 +332,10 @@ export const RoleManagementView: React.FC = () => {
                 className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all whitespace-nowrap border ${
                   user?.role === roleItem.id
                     ? 'bg-cyan-500/20 border-cyan-500/40 text-cyan-300 font-bold shadow-sm'
-                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:bg-slate-800 hover:text-white'
+                    : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800 hover:text-white'
                 }`}
               >
+                <span className="text-[9px] font-mono text-slate-500 mr-1">[{roleItem.category}]</span>
                 {roleItem.label}
               </button>
             ))}
@@ -309,7 +354,7 @@ export const RoleManagementView: React.FC = () => {
           }`}
         >
           <Layers className="h-4 w-4" />
-          Daftar Role & Matriks Izin
+          Daftar Role & Matriks Izin ({roles.length} Role)
         </button>
 
         <button
@@ -329,15 +374,32 @@ export const RoleManagementView: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left Column: Role List Selector */}
           <div className="lg:col-span-4 space-y-3">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
                 <Users className="h-4 w-4 text-cyan-400" />
-                Daftar Peran ({roles.length})
+                Daftar Peran ({filteredRoles.length})
               </h2>
+
+              {/* Industry Category Filter */}
+              <select
+                value={selectedIndustryFilter}
+                onChange={(e) => setSelectedIndustryFilter(e.target.value)}
+                className="rounded-lg bg-slate-950 border border-slate-800 px-2 py-1 text-[11px] text-slate-300 focus:outline-none focus:border-cyan-500"
+              >
+                <option value="ALL">Semua Industri & Bidang</option>
+                <option value="CORE_MANAGEMENT">Core & Manajemen</option>
+                <option value="OPERATIONS_DISPATCH">Operasional & Armada</option>
+                <option value="RENT_CAR_INDUSTRY">Rent Car & Mobility</option>
+                <option value="LOGISTICS_SUPPLY_CHAIN">Logistics & TMS</option>
+                <option value="BUS_PASSENGER_TRANSPORT">PO Bus & Angkutan</option>
+                <option value="MINING_HEAVY_EQUIPMENT">Tambang & Alat Berat</option>
+                <option value="SAFETY_HSE">Keselamatan K3 / HSE</option>
+                <option value="IOT_TELEMATICS_ENGINEERING">IoT & Telematika</option>
+              </select>
             </div>
 
             <div className="space-y-2 max-h-[720px] overflow-y-auto pr-1">
-              {roles.map((r) => {
+              {filteredRoles.map((r) => {
                 const isSelected = r.id === selectedRoleId;
                 return (
                   <div
@@ -350,21 +412,36 @@ export const RoleManagementView: React.FC = () => {
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className={`text-sm font-bold ${isSelected ? 'text-cyan-300' : 'text-white'}`}>
+                      <div className="w-full">
+                        <div className="flex items-center justify-between gap-2">
+                          <h3 className={`text-sm font-bold truncate ${isSelected ? 'text-cyan-300' : 'text-white'}`}>
                             {r.name}
                           </h3>
-                          {r.isSystem ? (
-                            <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-slate-800 text-slate-400 border border-slate-700">
-                              SYSTEM
-                            </span>
-                          ) : (
-                            <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                              CUSTOM
-                            </span>
-                          )}
+                          <div className="flex items-center gap-1 shrink-0">
+                            {r.id === 'developer' ? (
+                              <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                                ALL ACCESS
+                              </span>
+                            ) : r.isSystem ? (
+                              <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-slate-800 text-slate-400 border border-slate-700">
+                                SYSTEM
+                              </span>
+                            ) : (
+                              <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                                CUSTOM
+                              </span>
+                            )}
+                          </div>
                         </div>
+
+                        {r.industryCategory && (
+                          <div className="mt-1">
+                            <span className="inline-block px-1.5 py-0.5 rounded text-[9px] font-mono font-semibold bg-slate-950 text-slate-400 border border-slate-800">
+                              {r.industryCategory.replace(/_/g, ' ')}
+                            </span>
+                          </div>
+                        )}
+
                         <p className="text-xs text-slate-400 mt-1 line-clamp-2">{r.description}</p>
                       </div>
                     </div>

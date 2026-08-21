@@ -432,37 +432,45 @@ export const LoginPage: React.FC<Props> = ({
           </button>
         </p>
 
-        {/* 12 Enterprise Roles Selector for Live Testing */}
+        {/* Enterprise Roles & Developer Account Selector for Live Testing */}
         <div className="rounded-2xl border border-slate-800/80 bg-slate-900/50 p-3 space-y-2.5">
           <div className="flex items-center justify-between">
             <p className="text-[10px] font-bold text-slate-300 uppercase tracking-wide flex items-center gap-1.5">
               <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
-              Pilih dari 12 Role User RBAC:
+              Pilih Akun Demo & Developer (1-Click Login):
             </p>
             <span className="text-[10px] text-cyan-400 font-mono">Auto-Fill & Test</span>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-48 overflow-y-auto pr-1 custom-scrollbar text-xs">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-52 overflow-y-auto pr-1 custom-scrollbar text-xs">
             {Object.entries(DEMO_ROLE_ACCOUNTS).map(([accEmail, accData]) => {
               const isSelected = selectedRoleKey === accEmail;
+              const isDev = accData.role === 'developer';
               return (
                 <button
                   key={accEmail}
                   type="button"
                   onClick={() => fillDemoCreds(accEmail)}
-                  className={`rounded-xl border p-2 text-left transition-all ${
+                  className={`rounded-xl border p-2 text-left transition-all relative ${
                     isSelected
                       ? 'border-cyan-500/80 bg-cyan-500/10 shadow-sm shadow-cyan-500/20 ring-1 ring-cyan-500/40'
+                      : isDev
+                      ? 'border-emerald-500/40 bg-emerald-950/20 hover:border-emerald-400/70 hover:bg-emerald-950/40'
                       : 'border-slate-800 bg-slate-950 hover:border-slate-700 hover:bg-slate-900'
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <p className="font-bold text-white text-[11px] capitalize truncate">
-                      {accData.role.replace('_', ' ')}
+                      {isDev ? 'Developer' : accData.role.replace('_', ' ')}
                     </p>
+                    {isDev && (
+                      <span className="text-[8px] font-mono px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30">
+                        DEV
+                      </span>
+                    )}
                   </div>
                   <p className="text-[10px] text-slate-400 truncate">{accData.name}</p>
-                  <p className="text-[9px] text-cyan-400/80 truncate mt-0.5">{accData.dept.split(' ')[0]}</p>
+                  <p className="text-[9px] text-cyan-400/80 truncate mt-0.5">{accData.email}</p>
                 </button>
               );
             })}

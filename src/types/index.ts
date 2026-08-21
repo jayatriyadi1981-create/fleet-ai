@@ -13,6 +13,7 @@ export * from './gps';
 export * from './driver';
 export * from './dailyBriefing';
 export * from '../modules/rent-car/types';
+export * from '../modules/logistics/types';
 
 export type VehicleStatus = 'moving' | 'idle' | 'parking' | 'offline' | 'emergency' | 'maintenance' | 'under_maintenance' | 'archived';
 

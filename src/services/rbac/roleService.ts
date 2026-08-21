@@ -21,11 +21,26 @@ class RoleService {
     try {
       const saved = localStorage.getItem(LOCAL_STORAGE_ROLES_KEY);
       if (saved) {
-        this.roles = JSON.parse(saved);
+        const storedRoles: RoleDefinition[] = JSON.parse(saved);
+        // Merge system roles to ensure new system roles (developer, rental, logistics, bus, mining, etc.) are always present
+        const customRoles = storedRoles.filter((r) => !r.isSystem);
+        const mergedSystemRoles = DEFAULT_SYSTEM_ROLES.map((defaultRole) => {
+          const existing = storedRoles.find((r) => r.id === defaultRole.id);
+          if (existing && existing.isSystem) {
+            // Keep customized permissions if altered, but keep latest metadata
+            return {
+              ...defaultRole,
+              permissions: existing.permissions || defaultRole.permissions,
+              scope: existing.scope || defaultRole.scope,
+            };
+          }
+          return defaultRole;
+        });
+        this.roles = [...mergedSystemRoles, ...customRoles];
       } else {
         this.roles = [...DEFAULT_SYSTEM_ROLES];
-        this.persistRoles();
       }
+      this.persistRoles();
     } catch {
       this.roles = [...DEFAULT_SYSTEM_ROLES];
     }

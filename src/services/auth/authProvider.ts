@@ -57,6 +57,20 @@ const STORAGE_USER_KEY = 'fleet_ai_auth_user_v1';
 const STORAGE_2FA_KEY = 'fleet_ai_auth_2fa_enabled_v1';
 
 export const DEMO_ROLE_ACCOUNTS: Record<string, { name: string; role: UserRole; dept: string; branch: string; email: string }> = {
+  'developer@fleet-demo.local': {
+    name: 'Jaya Triyadi (Lead Developer)',
+    role: 'developer',
+    dept: 'Software Engineering & API Integrations',
+    branch: 'Kantor Pusat Jakarta',
+    email: 'developer@fleet-demo.local',
+  },
+  'jayatriyadi1981@gmail.com': {
+    name: 'Jaya Triyadi (Lead Developer)',
+    role: 'developer',
+    dept: 'Software Engineering & API Integrations',
+    branch: 'Kantor Pusat Jakarta',
+    email: 'jayatriyadi1981@gmail.com',
+  },
   'super_admin@fleet-demo.local': {
     name: 'Bambang Pratama',
     role: 'super_admin',

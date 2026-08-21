@@ -1,6 +1,6 @@
 {
   "name": "Fleet Intelligence Smart AI",
-  "description": "Platform AI Telematika & GPS Fleet Management Enterprise untuk Pengelolaan Armada, Driver, Safety, BBM, Pemeliharaan, dan Rent Car Management System",
+  "description": "Platform AI Telematika & GPS Fleet Management Enterprise untuk Pengelolaan Armada, Driver, Safety, BBM, Pemeliharaan, Rent Car, Logistics TMS, Bus Management, Mining, Pickup & Delivery (PUD), Dump Truck (DTMS), Taxi Management, Tanker Truck (TTMS), Waste Transport, serta Securicor & CIT Security Fleet Management System",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
